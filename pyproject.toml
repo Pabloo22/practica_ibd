@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "dags"
+version = "0.1.0"
+description = ""
+authors = ["Pabloo22 <pablete.arino@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+earthengine-api = "^0.1.393"
+folium = "^0.16.0"
+apache-airflow = "2.8.2"
+apache-airflow-providers-apache-spark = "4.7.1"
+pyspark = "3.4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

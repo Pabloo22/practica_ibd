@@ -12,6 +12,7 @@ apache-airflow-providers-apache-spark = "4.7.1"
 pyspark = "3.4.0"
 ipykernel = "^6.29.3"
 pandas = "^2.2.1"
+pandas-stubs = "^2.2.1.240316"
 
 
 [build-system]

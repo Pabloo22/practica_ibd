@@ -85,4 +85,4 @@ with DAG(
         ),
     )
 
-    extract_task >> end_task
+    extract_task >> end_task  # pylint: disable=pointless-statement

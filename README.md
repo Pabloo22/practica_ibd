@@ -5,7 +5,14 @@ Práctica de la asignatura de Infraestructura de Big Data
 Para desplegar el entorno, debemos ejecutar el siguiente comando: \
 docker compose up -d --build
 
-Al desplegar el entorno por primera vez, debemos inicializar manualmente el contenedor asociado al servidor web de Apache Airflow ("webserver"). Tras ello, podremos acceder a las interfaces de Airflow y Apache Spark:
+Al desplegar el entorno por primera vez, debemos inicializar manualmente el contenedor asociado al servidor web de Apache Airflow ("webserver"). 
+En Linux, es necesario otorgar al contenedor los permisos necesarios para poder escribir en el directorio `./logs`:
+
+```bash
+sudo chmod -R 777 ./logs
+```
+
+Tras ello, podremos acceder a las interfaces de Airflow y Apache Spark:
 - Apache Airflow UI: http://localhost:8080
 - Apache Spark UI: http://localhost:9090
 

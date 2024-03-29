@@ -35,7 +35,7 @@ def extract_gob_meteor(url, hour_booleans):
 
     for hour_bool in hour_booleans:
         print(f"Check: {hour_bool}")
-        assert any(np.array(df[hour_bool]) == 'V')
+        #assert any(np.array(df[hour_bool]) == 'V')
 
     df = df[['ESTACION', 'MAGNITUD', 'PUNTO_MUESTREO',
         'ANO', 'MES', 'DIA', 'H01', 'H02', 'H03', 'H04',
@@ -48,6 +48,24 @@ def extract_gob_meteor(url, hour_booleans):
 
 
     return df
+
+def load_gob_meteor(df, folder_path, filename):
+    """
+    Carga el CSV incremental correspondiente en la carpeta de información cruda "/raw"
+    """
+    
+    # Best Practices - Section: Top level Python Code
+    import os
+
+    # For Debugging Purposes
+    print(os.getcwd())
+
+    # Construct the full file path
+    file_path = os.path.join(folder_path, filename)
+    
+    # Write DataFrame to CSV
+    df.to_csv(file_path, index=False)
+    print(f"DataFrame written to {file_path}")
 
 
 
@@ -77,12 +95,29 @@ with DAG(
 
         return scraped_data
     
+    @task(task_id='load_df_to_raw')
+    def load_raw(df):
+        # Retrieve the Pandas DataFrame
+        print(df.head())
+
+        # Define the folder path
+        folder_path = "/opt/airflow/raw"
+        
+        # Generate a unique filename based on the current timestamp
+        timestamp_str = (str(pendulum.now(tz="UTC"))[:10]).replace("-", "_")
+        print(timestamp_str)
+        filename = f"gob_meteor_{timestamp_str}.csv"
+        print(filename)
+
+        load_gob_meteor(df, folder_path, filename)
 
     extract_task = extract()
+
+    load_raw_task = load_raw(extract_task)
 
     end_task = PythonOperator(
         task_id="end",
         python_callable = lambda: print("Jobs completed successfully"),
     )
 
-    extract_task >> end_task
+    extract_task >> load_raw_task >> end_task

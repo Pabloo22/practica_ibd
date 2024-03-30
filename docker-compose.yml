@@ -17,6 +17,7 @@ x-airflow-common: &airflow-common
     - ./jobs:/opt/airflow/jobs
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
+    - ./raw:/opt/airflow/raw_isma
   depends_on:
     - postgres
   networks:

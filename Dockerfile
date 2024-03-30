@@ -9,4 +9,9 @@ ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
 
 USER airflow
 
-RUN pip install apache-airflow==2.8.2 apache-airflow-providers-apache-spark==4.7.1 pyspark==3.4.0
+RUN pip install --upgrade pip && \
+    pip install apache-airflow==2.8.2 \
+    apache-airflow-providers-apache-spark==4.7.1 \
+    pyspark==3.4.0 \
+    beautifulsoup4==4.12.3 \
+    lxml==5.2.0

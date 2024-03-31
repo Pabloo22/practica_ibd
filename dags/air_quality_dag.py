@@ -54,6 +54,25 @@ def extract_mambiente_data(url):
     return df
 
 
+def load_air_quality(df, folder_path, filename):
+    """
+    Guarda el DataFrame `df` en un fichero CSV en la carpeta `folder_path` con
+    el nombre `filename`.
+
+    El dataframe debería contener la informaciçon del CSV incremental
+    correspondiente en la carpeta de información cruda "/raw".
+    """
+    import os
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    file_path = os.path.join(folder_path, filename)
+    df.to_csv(file_path, index=False)
+
+    print(f"DataFrame written to {file_path}")
+
+
 default_args = {
     "start_date": pendulum.datetime(2024, 3, 1, tz="UTC"),
     "retries": 2,
@@ -76,7 +95,25 @@ with DAG(
 
         return extracted_data
 
+    @task(task_id="load_df_to_raw")
+    def load_raw(df):
+        # Retrieve the Pandas DataFrame
+        print(df.head())
+
+        # Define the folder path
+        folder_path = "/opt/airflow/raw"
+
+        # Generate a unique filename based on the current timestamp
+        timestamp_str = (str(pendulum.now(tz="UTC"))[:10]).replace("-", "_")
+        print(timestamp_str)
+        filename = f"air_quality_{timestamp_str}.csv"
+        print(filename)
+
+        load_air_quality(df, folder_path, filename)
+
     extract_task = extract()
+
+    load_raw_task = load_raw(extract_task)
 
     end_task = PythonOperator(
         task_id="end",
@@ -85,4 +122,5 @@ with DAG(
         ),
     )
 
-    extract_task >> end_task  # pylint: disable=pointless-statement
+    # pylint: disable=pointless-statement
+    extract_task >> load_raw_task >> end_task

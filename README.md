@@ -1,32 +1,57 @@
-# practica_ibd
-Práctica de la asignatura de Infraestructura de Big Data
+# Práctica de Infraestructura de Big Data
 
-## 1. Inicialización de Entorno
-Para desplegar el entorno, debemos ejecutar el siguiente comando: \
-docker compose up -d --build
 
-Al desplegar el entorno por primera vez, debemos inicializar manualmente el contenedor asociado al servidor web de Apache Airflow ("webserver"). 
-En Linux, es necesario otorgar al contenedor los permisos necesarios para poder escribir en el directorio `./logs`:
+
+## Descripción de la Infraestructura Digital :page_facing_up:
+**TODO:** descripción detallada de la infraestructura, donde se justifique su diseño.
+
+## 1. Despliegue :rocket:
+> [!WARNING]  
+> Es posible que sea necesario otorgar los permisos correspondientes a las carpetas `./logs` y `./raw` para que Apache Airflow pueda escribir en ellas desde el interior del contenedor. 
+> 
+> En Linux, se puede hacer mediante el comando `sudo chmod -R 777 ./logs ./dags` antes de realizar el despliegue. Este comando cambiará los permisos de los directorios logs y dags, así como de todos los archivos y subdirectorios contenidos dentro de ellos, otorgando permisos completos (lectura, escritura y ejecución) a todos los usuarios.
+
+Para desplegar el entorno, debemos ejecutar el siguiente comando:
 
 ```bash
-sudo chmod -R 777 ./logs
+docker compose up -d --build
 ```
+
+Al desplegar el entorno por primera vez, es posible que debamos inicializar manualmente el contenedor asociado al servidor web de Apache Airflow (`webserver`). 
 
 Tras ello, podremos acceder a las interfaces de Airflow y Apache Spark:
 - Apache Airflow UI: http://localhost:8080
 - Apache Spark UI: http://localhost:9090
 
-Finalmente, para establecer la conexión de Apache Airflow con Apache Spark, debemos especificar manualmente los siguientes parámetros en el panel "/Admin/Connections" de Airflow:
- - Connection Id: spark-conn
- - Connection Type: Spark
- - Host: spark://spark-master
- - Port: 7077 
+Las credenciales de acceso a Apache Airflow son las siguientes:
+- Username:`admin`
+- Password: `admin`
 
-Además, es relevante mencionar que se han especificado todas las versiones de todas las dependencias del proyecto meticulosamente para evitar conflictos de versiones en el futuro.
+Finalmente, para establecer la conexión de Apache Airflow con Apache Spark, debemos especificar manualmente los siguientes parámetros en el panel `/Admin/Connections` de Airflow:
+ - Connection Id: `spark-conn`
+ - Connection Type: `Spark`
+ - Host: `spark://spark-master`
+ - Port: `7077` 
+
+> [!NOTE]  
+> En el [Dockerfile](Dockerfile) se han especificado todas las versiones de todas las dependencias del proyecto meticulosamente para evitar conflictos de versiones en el futuro.
+> 
+> El uso de [Poetry](https://python-poetry.org/) se utiliza únicamente desde el punto de vista de desarrollo, para gestionar las dependencias del proyecto. De esta forma, se permite la realización de pruebas en local sin necesidad de desarrollar desde el interior del contenedor. Estas pruebas se realizan principalmente en los notebooks contenidos en la carpeta `./notebooks`. No obstante, ninguno de los contenedores desplegados en producción hace uso de Poetry o de los notebooks.
+
 
 ## 2. Desarrollo de Solución ETL
 
 ## 3. Propuesta de Valor
+
+## Miembros del Equipo :busts_in_silhouette:
+
+**Grupo 2:**
+- Pablo Ariño
+- Álvaro Laguna
+- Ismail Merabet
+- Roberto Mulas
+
+*Nombres ordenados alfabéticamente por apellido.*
 
 ## Referencias
 - https://hub.docker.com/r/bitnami/spark/tags

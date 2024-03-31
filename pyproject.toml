@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "dags"
+version = "0.1.0"
+description = ""
+authors = ["Pabloo22 <pablete.arino@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+apache-airflow = "2.8.2"
+apache-airflow-providers-apache-spark = "4.7.1"
+pyspark = "3.4.0"
+ipykernel = "^6.29.3"
+pandas = "^2.2.1"
+pandas-stubs = "^2.2.1.240316"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.black]
+line-length = 79

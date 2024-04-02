@@ -42,6 +42,7 @@ def load_contaminacion_acustica(df, folder_path, filename):
 
     # Best Practices - Section: Top level Python Code
     import os
+    import pandas as pd
 
     # For Debugging Purposes
     print(os.getcwd())
@@ -50,11 +51,24 @@ def load_contaminacion_acustica(df, folder_path, filename):
     file_path = os.path.join(folder_path, filename)
 
     # Filter DataFrame by date
-    year = pendulum.now().year
-    month = pendulum.now().month
-    day = pendulum.now().day
+    todays_date = pendulum.now(tz="UTC").date()
+    # Knowing that todays date is on monday, substract 1 day to get the last sunday
+    last_sunday = str(todays_date.subtract(days=1))[:10]
+    last_monday = str(todays_date.subtract(days=7))[:10]
+    print(f"Last Sunday: {last_sunday}")
+    print(f"Last Monday: {last_monday}")
 
-    df = df[(df["anio"] == year) & (df["mes"] == month) & (df["dia"] == day)]
+    # Get date from anio, mes, dia columns
+    df["fecha"] = pd.to_datetime(
+        df[["anio", "mes", "dia"]].rename(
+            columns={"anio": "year", "mes": "month", "dia": "day"}
+        )
+    )
+
+    # Filter by date
+    df = df[(df["fecha"] >= last_monday) & (df["fecha"] <= last_sunday)]
+
+    df.drop(columns=["fecha"], inplace=True)
 
     # Write DataFrame to CSV
     df.to_csv(file_path, index=False)
@@ -70,7 +84,7 @@ default_args = {
 
 with DAG(
     dag_id="contaminacion_acustica",
-    schedule_interval="35 23 * * *",
+    schedule_interval="35 23 * * 1",
     tags=["Ayuntamiento_Madrid"],
     default_args=default_args,
 ) as dag:

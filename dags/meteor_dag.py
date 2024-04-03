@@ -90,7 +90,7 @@ def export_gob_meteor(df, folder_path, filename):
 
 
 default_args = {
-    "start_date": pendulum.datetime(2024, 3, 1, tz="UTC"),
+    "start_date": pendulum.datetime(2024, 4, 1, tz="UTC"),
     "retries": 2,
     "retry_delay": pendulum.duration(seconds=2),
     "catchup": False
@@ -144,7 +144,7 @@ with DAG(
         # Generate a unique filename based on the current timestamp
         timestamp_str = (str(pendulum.now(tz="UTC"))[:10]).replace("-", "_")
         print(timestamp_str)
-        filename = f"open_meteo_data_{timestamp_str}.csv"
+        filename = f"open_meteo_{timestamp_str}.csv"
         print(filename)
 
         export_gob_meteor(df, folder_path, filename)

@@ -139,12 +139,12 @@ with DAG(
         print(df.head())
 
         # Define the folder path
-        folder_path = "/opt/airflow/raw_isma"
+        folder_path = "/opt/airflow/raw"
         
         # Generate a unique filename based on the current timestamp
         timestamp_str = (str(pendulum.now(tz="UTC"))[:10]).replace("-", "_")
         print(timestamp_str)
-        filename = f"meteor_data_{timestamp_str}.csv"
+        filename = f"open_meteo_data_{timestamp_str}.csv"
         print(filename)
 
         export_gob_meteor(df, folder_path, filename)

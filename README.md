@@ -37,15 +37,16 @@ Finalmente, para establecer la conexión de Apache Airflow con Apache Spark, deb
 
 
 ## 2. Descripción de la Infraestructura Digital :page_facing_up:
-En esta práctica, se busca realizar un procesamiento batch de datos sobre la meteorología de la ciudad de Madrid. Para ello, primero se extraerán, a nivel diario, datos muy variados y heterogéneos de una gran diversidad de fuentes mediante Apache Airflow (que será la herramienta que orquestará todo el flujo de datos desde la extracción hasta la propuesta de valor). Estos incrementales diarios se almacenarán en la carpeta /raw (información cruda). Tras ello, se realizaría un procesamiento paralelo de los datos en crudo con Apache Spark (PySpark) para, no solamente enriquecerlos; sino también, combinarlos con el histórico generado. Finalmente, los almacenaríamos en una base de datos NoSQL de la cual bebería Streamlit, para dashboards interactivos, o MLFlow, para crear modelos de Machine Learning (nuestras propuestas de valor).
+En esta práctica, se busca realizar un procesamiento batch de datos sobre la meteorología de la ciudad de Madrid. Para ello, primero se extraerán, a nivel diario, datos muy variados y heterogéneos de una gran diversidad de fuentes mediante Apache Airflow (que será la herramienta que orquestará todo el flujo de datos desde la extracción hasta la propuesta de valor). Estos incrementales diarios se almacenarán en la carpeta `/raw` (información cruda). Tras ello, se realizaría un procesamiento paralelo de los datos en crudo con Apache Spark (PySpark) para, no solamente enriquecerlos; sino también, combinarlos con el histórico generado. Finalmente, los almacenaríamos en una base de datos NoSQL de la cual bebería Streamlit, para dashboards interactivos, o MLFlow, para crear modelos de Machine Learning (nuestras propuestas de valor).
 
-Respecto a la primera parte de la arquitectura, se realizan una serie de DAGs de Airflow para extraer y cargar la información cruda en la carpeta /raw. Los datos que se extraen diariamente sobre la meteorología de Madrid son muy variados (indicadores básicos de lluvia o viento, métricas sobre calidad de aire, contaminación acústica, etc). Cada DAG está compuesto de dos tareas: la extracción de la información y la carga de la misma en la carpeta /raw. Respecto a la información extraída, se detalla la lista de DAGs a continuación:
-- "gob_meteor" DAG: extrae el CSV incremental de datos 'Datos meteorológicos. Datos en tiempo real' 
+Respecto a la primera parte de la arquitectura, se realizan una serie de DAGs de Airflow para extraer y cargar la información cruda en la carpeta `/raw`. Los datos que se extraen diariamente sobre la meteorología de Madrid son muy variados (indicadores básicos de lluvia o viento, métricas sobre calidad de aire, contaminación acústica, etc). Cada DAG está compuesto de dos tareas: la extracción de la información y la carga de la misma en la carpeta `/raw`. Respecto a la información extraída, se detalla la lista de DAGs a continuación:
+- `gob_meteor` DAG: extrae el CSV incremental de datos 'Datos meteorológicos. Datos en tiempo real' 
     que proporciona el Ayuntamiento de Madrid. La URL correspondiente es:
 
         https://datos.gob.es/es/catalogo/l01280796-datos-meteorologicos-datos-en-tiempo-real1
 
     La información sobre las distintas variables medidas es la siguiente:
+
         81 - VELOCIDAD VIENTO
         82 - DIR. DE VIENTO
         83 - TEMPERATURA
@@ -57,12 +58,11 @@ Respecto a la primera parte de la arquitectura, se realizan una serie de DAGs de
     Para más información, se puede consultar la siguiente web: 
         https://datos.madrid.es/portal/site/egob/menuitem.c05c1f754a33a9fbe4b2e4b284f1a5a0/?vgnextoid=2ac5be53b4d2b610VgnVCM2000001f4a900aRCRD&vgnextchannel=374512b9ace9f310VgnVCM100000171f5a0aRCRD&vgnextfmt=default
 
-- "mambiente_hourly_data" DAG: extrae el contenido del fichero horario.txt de la web del Ayuntamiento de
+- `mambiente_hourly_data` DAG: extrae el contenido del fichero [horario.txt](https://www.mambiente.madrid.es/opendata/horario.txt) de la web del Ayuntamiento de
     Madrid, el cual contiene información sobre la calidad del aire en la
-    ciudad de Madrid y se actualiza cada hora. La URL del fichero es la
-    siguiente:
+    ciudad de Madrid y se actualiza cada hora. Los datos son accesibles en el siguiente [enlace](https://datos.madrid.es/portal/site/egob/menuitem.c05c1f754a33a9fbe4b2e4b284f1a5a0/?vgnextoid=41e01e007c9db410VgnVCM2000000c205a0aRCRD&vgnextchannel=374512b9ace9f310VgnVCM100000171f5a0aRCRD).
 
-        https://www.mambiente.madrid.es/opendata/horario.txt
+    A continuación se muestra un extracto del contenido de la web que proporciona los datos:
 
     > El Sistema Integral de la Calidad del Aire del Ayuntamiento de Madrid
     > permite conocer en cada momento los niveles de contaminación atmosférica
@@ -80,7 +80,7 @@ Respecto a la primera parte de la arquitectura, se realizan una serie de DAGs de
     Para más información sobre el contenido del fichero, consultar el
     documento [Interprete_ficheros_calidad_del_aire_global.pdf](https://shorturl.at/ahmSZ).
 
-- "" DAG:
+- `noticias` DAG:
 
 ## Miembros del Equipo :busts_in_silhouette:
 

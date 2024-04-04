@@ -80,7 +80,27 @@ Respecto a la primera parte de la arquitectura, se realizan una serie de DAGs de
     Para más información sobre el contenido del fichero, consultar el
     documento [Interprete_ficheros_calidad_del_aire_global.pdf](https://shorturl.at/ahmSZ).
 
-- `noticias` DAG:
+- `noticias` DAG: está diseñado para automatizar la extracción de noticias recientes de los periódicos *El País* y *ABC*, específicamente de sus secciones de Madrid. Utiliza técnicas de web scraping para obtener el contenido de las páginas web de estos medios.
+
+    Estos datos se almacenan en un archivo JSON, cuyo nombre incorpora la fecha y hora de la extracción, para su posterior análisis o uso. Los datos siguen el siguiente formato:
+
+    ```python
+    [
+        {
+            "title": "El secretario general del PP de Ayuso se citó con la pareja de la líder en plena polémica por su caso de fraude fiscal",
+            "link": "https://elpais.com/espana/madrid/2024-04-04/el-secretario-general-del-pp-de-ayuso-se-cito-con-la-pareja-de-la-lider-en-plena-polemica-por-su-caso-de-fraude-fiscal.html",
+            "description": "Aunque los conservadores reducen la denuncia de la Fiscalía a un asunto que afecta a un particular, altos cargos del partido y del Gobierno se han implicado en la gestión de la crisis política y reputacional",
+            "journal": "EL_PAIS"
+        },
+        ...
+    ]
+    ```
+
+    El DAG se ejecuta diariamente a las 23:35 UTC, garantizando la recopilación de noticias a lo largo del día. Las noticias son filtradas para solo incluir las noticias del día de ejecución del DAG.
+
+    Para más información sobre *El País* y *ABC*, sus secciones de noticias de Madrid pueden ser accedidas a través de los siguientes enlaces:
+    - El País: [Sección Madrid de El País](https://elpais.com/espana/madrid/)
+    - ABC: [Sección Madrid de ABC](https://www.abc.es/espana/madrid/)
 
 ## Miembros del Equipo :busts_in_silhouette:
 

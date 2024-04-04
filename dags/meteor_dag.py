@@ -98,7 +98,7 @@ default_args = {
 
 with DAG(
     dag_id="meteo_isma",
-    schedule_interval="35 23 * * *",
+    schedule_interval="35 22 * * *",
     tags=["gob-meteo"],
     default_args=default_args
 ) as dag:

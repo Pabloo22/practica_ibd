@@ -100,7 +100,7 @@ def extract_news_data(journal: Journal) -> list[dict[str, str]]:
     if journal == Journal.EL_PAIS:
         url = "https://elpais.com/espana/madrid/"
     elif journal == Journal.ABC:
-        url = "https://www.abc.es/espana/madrid/?ref=https%3A%2F%2Fwww.abc.es%2Fespana%2Fmadrid%2F"
+        url = "https://www.abc.es/espana/madrid/"
     else:
         raise ValueError("Invalid journal.")
 

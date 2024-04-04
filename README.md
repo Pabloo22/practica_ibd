@@ -102,6 +102,21 @@ Respecto a la primera parte de la arquitectura, se realizan una serie de DAGs de
     - El País: [Sección Madrid de El País](https://elpais.com/espana/madrid/)
     - ABC: [Sección Madrid de ABC](https://www.abc.es/espana/madrid/)
 
+- `meteor` DAG: se encarga de extraer datos meteorológicos de varios distritos de Madrid y cargarlos en un archivo CSV. La ejecución del DAG se programa diariamente a las 22:35 UTC.
+
+  A continuación, se detallan las tareas del DAG:
+
+    >1. **extract_data**: Esta tarea se encarga de extraer los datos meteorológicos de los distritos especificados utilizando la API de open-meteo.com. Los distritos y sus coordenadas están definidos dentro de la tarea. Los datos extraídos corresponden a la información disponible hace 2 días anteriores y se procesan y almacenan   
+    >en un DataFrame de Pandas.
+    >
+    >2. **export_raw_df**: Una vez que los datos se han extraído y procesado, se exportan a un archivo CSV en la carpeta "/opt/airflow/raw". El nombre del archivo se genera con la fecha y hora actual.
+    >
+    >3. **end**: Esta tarea final simplemente imprime un mensaje indicando que las tareas han sido completadas con éxito.
+
+   Los datos meteorológicos se obtienen de open-meteo.com, una plataforma que proporciona información detallada sobre varias variables meteorológicas. El DataFrame generado incluye información como la temperatura, la humedad relativa, la presión barométrica, la velocidad del viento y la radiación solar, entre otras variables.
+   Para más información sobre la fuente de datos, visita [open-meteo.com](https://open-meteo.com).
+ 
+
 ## Miembros del Equipo :busts_in_silhouette:
 
 **Grupo 2:**

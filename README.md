@@ -102,6 +102,18 @@ Respecto a la primera parte de la arquitectura, se realizan una serie de DAGs de
     - El País: [Sección Madrid de El País](https://elpais.com/espana/madrid/)
     - ABC: [Sección Madrid de ABC](https://www.abc.es/espana/madrid/)
 
+- `contaminacion_acustica` DAG: extrae los datos de contaminación acústica de la web del Ayuntamiento de Madrid. Los datos son accesibles en el siguiente [enlace](https://datos.madrid.es/egob/catalogo/215885-10749127-contaminacion-ruido.csv).
+
+    A continuación se muestra un extracto del contenido del fichero que proporciona los datos:
+
+    > Este conjunto de datos ofrece la información desde el 1 de enero de 2014, y se va actualizacion diariamente. Todos los días laborables se publican los datos correspondientes al día anterior. En el caso de los días laborables inmediatamente posteriores a días no laborables, se publican los datos correspondientes a los días pendientes no laborables. La unidad en la que se proporcionan todos los datos (LAeq, LAS01, LAS10, LAS50, LAS90 y LAS99) es el decibelio ponderado en base A (dBA). En este portal tambien están disponibles otros conjuntos de datos relacionados con la contaminación acústica: Contaminación acústica. Datos históricos mensuales Contaminación acústica: Estaciones de medida Asímismo, puedes encontrar más información sobre estos datos en el Portal de transparencia > Ruido.
+
+    El DAG se ejecuta diariamente a las 23:35 UTC, descargándose el fichero de datos completo. Este fichero contiene todos los datos de contaminación acústica desde el 1 de enero de 2014 hasta el día anterior a la ejecución del DAG. En el caso de los días festivos, los datos correspondientes a esos días se publican en el siguiente día laborable, por lo que el DAG se encarga de descargar los datos correspondientes a esos días festivos en el día laborable siguiente.
+
+    La  información sobre las estaciones de medida se puede encontrar en el siguiente [enlace](https://datos.madrid.es/egob/catalogo/211346-1-estaciones-acusticas.csv).
+
+    Para más información sobre el contenido del fichero, consultar el siguiente [documento](https://datos.madrid.es/FWProjects/egob/Catalogo/MedioAmbiente/Ruido/Ficheros/INTERPRETE%20DE%20ARCHIVO%20DE%20DATOS%20DIARIOS%20RUIDOS.pdf)
+
 ## Miembros del Equipo :busts_in_silhouette:
 
 **Grupo 2:**

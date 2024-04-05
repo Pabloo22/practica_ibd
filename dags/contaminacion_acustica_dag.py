@@ -47,17 +47,24 @@ def load_contaminacion_acustica(df, folder_path):
     # For Debugging Purposes
     print(os.getcwd())
 
-    start_date = pd.to_datetime(str(default_args["start_date"])[:10], format="%Y-%m-%d")
+    start_date = pd.to_datetime(
+        str(default_args["start_date"])[:10], format="%Y-%m-%d"
+    )
 
     # Filter DataFrame by date
-    run_date = pd.to_datetime(os.environ.get("AIRFLOW_CTX_EXECUTION_DATE")[:10])
+    run_date = pd.to_datetime(
+        os.environ.get("AIRFLOW_CTX_EXECUTION_DATE")[:10]
+    )
     # Get the csvs inside /opt/airflow/raw
     files = os.listdir(folder_path)
     # Filter the csv that strats with 'contaminacion_acustica'
-    files = [file for file in files if file.startswith("contaminacion_acustica")]
+    files = [
+        file for file in files if file.startswith("contaminacion_acustica")
+    ]
     # Get the dates from the csvs
     dates = [
-        "".join(file.split("_")[2:]).split(".")[0].replace("_", "-") for file in files
+        "".join(file.split("_")[2:]).split(".")[0].replace("_", "-")
+        for file in files
     ]
     # Convert to pandas datetime
     dates = pd.to_datetime(dates)
@@ -83,7 +90,9 @@ def load_contaminacion_acustica(df, folder_path):
         file_path = os.path.join(folder_path, filename)
         # Write DataFrame to CSV
         df_filtered = df[
-            (df.anio == date.year) & (df.mes == date.month) & (df.dia == date.day)
+            (df.anio == date.year)
+            & (df.mes == date.month)
+            & (df.dia == date.day)
         ]
         if not df_filtered.empty:
             df_filtered.to_csv(file_path, index=False)
@@ -99,7 +108,7 @@ default_args = {
 
 with DAG(
     dag_id="contaminacion_acustica",
-    schedule_interval="35 23 * * *",
+    schedule_interval="35 22 * * *",
     tags=["Ayuntamiento_Madrid"],
     default_args=default_args,
 ) as dag:

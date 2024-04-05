@@ -74,7 +74,7 @@ def load_air_quality(df, folder_path, filename):
 
 
 default_args = {
-    "start_date": pendulum.datetime(2024, 3, 1, tz="UTC"),
+    "start_date": pendulum.datetime(2024, 4, 1, tz="UTC"),
     "retries": 2,
     "retry_delay": pendulum.duration(seconds=2),
     "catchup": False,

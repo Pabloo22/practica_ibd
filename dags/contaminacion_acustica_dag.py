@@ -100,7 +100,7 @@ def load_contaminacion_acustica(df, folder_path):
 
 
 default_args = {
-    "start_date": pendulum.datetime(2024, 3, 1, tz="UTC"),
+    "start_date": pendulum.datetime(2024, 4, 1, tz="UTC"),
     "retries": 2,
     "retry_delay": pendulum.duration(seconds=2),
     "catchup": False,

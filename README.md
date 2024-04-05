@@ -4,7 +4,7 @@ En esta práctica, se busca realizar un procesamiento batch de datos sobre la si
 
 Para ello, con una frecuencia diaria, se extraerán los datos mediante Apache Airflow (que será la herramienta que orquestará todo el flujo de datos desde la extracción hasta la propuesta de valor).
 
-Estos incrementales diarios se almacenarán en la carpeta `/raw`. Tras ello, se realizará un procesamiento paralelo de los datos en crudo con Apache Spark (PySpark) para, no solamente enriquecerlos; si no también, combinarlos con el histórico generado.
+Estos incrementales diarios se almacenarán en la carpeta `/raw`. Tras ello, se realizará un procesamiento paralelo de los datos en crudo con Apache Spark (PySpark) para, no solamente enriquecerlos; sino también, combinarlos con el histórico generado.
 
 Finalmente, se guardarán en una base de datos NoSQL de la cual beberá Streamlit. La elección de la base de datos NoSQL se realizará en la segunda parte de la práctica.
 
@@ -88,7 +88,7 @@ El entorno de Airflow está compuesto por dos servicios:
 ### PostgreSQL
 - **`postgres`**: Este servicio funciona como la base de datos para Airflow. Guarda la información sobre el estado de las tareas, los DAGs y otros metadatos necesarios para que Airflow funcione correctamente. La base de datos está configurada con las credenciales `airflow` tanto para el usuario como para la contraseña.
 
-### Volumenes
+### Volúmenes
 Se configuran varios volúmenes para mantener la persistencia de los datos y el código entre reinicios de los contenedores. En concreto, varios volúmenes se mapean a las carpetas locales para que Spark y Airflow puedan acceder a scripts, DAGs, registros de ejecución y datos crudos (`./jobs`, `./dags`, `./logs`, `./raw`).
 
 ## DAGs de Apache Airflow :arrows_counterclockwise:
@@ -189,7 +189,7 @@ A continuación se detalla la lista de DAGs:
 El proyecto aborda las 5 Vs del Big Data de la siguiente manera:
 
 - **Volumen**: El proyecto maneja grandes volúmenes de datos, ya que se extraen datos de múltiples fuentes y se procesan diariamente. Los datos meteorológicos, de calidad del aire, de contaminación acústica y de noticias se recopilan y almacenan en bruto en la carpeta `/raw`, lo que resulta en un volumen significativo de datos a lo largo del tiempo.
-- **Velocidad**: El proyecto se centra en la velocidad de procesamiento de los datos, ya que se extraen y procesan diariamente. Los DAGs de Airflow se programan para ejecutarse diariamente a una hora específica, lo que garantiza la actualización regular de los datos.
+- **Velocidad**: El proyecto se centra en la velocidad de procesamiento de los datos, ya que se extraen y procesan diariamente. Los DAGs de Airflow se programan para ejecutarse diariamente a una hora específica, lo que garantiza la actualización regular de los datos. Además, se consigue una gran rapidez en la extracción y procesamiento de datos gracias a la elección de las herramientas anteriormente explicadas (gracias al uso de Apache Spark y Apache Airflow)
 - **Variedad**: El proyecto maneja una variedad de datos de diferentes fuentes, así como datos de tipo estructurado y no estructurado. Los datos meteorológicos, de calidad del aire y de contaminación acústica son estructurados, mientras que los datos de noticias son no estructurados.
 - **Veracidad**: El proyecto se centra en garantizar la veracidad de los datos, ya que se extraen de fuentes oficiales, como el Ayuntamiento de Madrid. Con respecto a los datos de noticias, se obtienen datos de dos de los principales periódicos de España, *El País* y *ABC*, cada uno con diferentes enfoques y perspectivas.
 - **Valor**: El proyecto busca proporcionar valor a través de la visualización de los datos en un dashboard interactivo creado con Streamlit. Una de las principales utilidades de este dashboard es permitir a los usuarios conocer como fue la situación en Madrid en el pasado. Conocer los datos relacionados con la contaminación es esencial para tomar decisiones informadas sobre la salud y el bienestar. Los datos relacionados con la meteorología y las noticias nos permiten comprender mejor el contexto en el que se producen los eventos relacionados con la contaminación.

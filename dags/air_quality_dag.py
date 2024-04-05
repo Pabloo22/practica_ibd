@@ -82,7 +82,7 @@ default_args = {
 
 with DAG(
     dag_id="mambiente_hourly_data",
-    schedule_interval="35 23 * * *",
+    schedule_interval="35 22 * * *",
     tags=["Ayuntamiento_Madrid", "Environmental_Data"],
     default_args=default_args,
 ) as dag:

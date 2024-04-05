@@ -124,7 +124,7 @@ default_args = {
 }
 with DAG(
     dag_id="noticias",
-    schedule_interval="35 23 * * *",
+    schedule_interval="35 22 * * *",
     tags=["noticias"],
     default_args=default_args,
 ) as dag:

@@ -1,7 +1,5 @@
 # Práctica de Infraestructura de Big Data
 
-
-
 ## 1. Despliegue :rocket:
 > [!WARNING]  
 > Es posible que sea necesario otorgar los permisos correspondientes a las carpetas `./logs` y `./raw` para que Apache Airflow pueda escribir en ellas desde el interior del contenedor. 
@@ -96,7 +94,7 @@ Respecto a la primera parte de la arquitectura, se realizan una serie de DAGs de
     ]
     ```
 
-    El DAG se ejecuta diariamente a las 23:35 UTC, garantizando la recopilación de noticias a lo largo del día. Las noticias son filtradas para solo incluir las noticias del día de ejecución del DAG.
+    El DAG se ejecuta diariamente a las 22:35 UTC, garantizando la recopilación de noticias a lo largo del día. Las noticias son filtradas para solo incluir las noticias del día de ejecución del DAG.
 
     Para más información sobre *El País* y *ABC*, sus secciones de noticias de Madrid pueden ser accedidas a través de los siguientes enlaces:
     - El País: [Sección Madrid de El País](https://elpais.com/espana/madrid/)
@@ -113,6 +111,7 @@ Respecto a la primera parte de la arquitectura, se realizan una serie de DAGs de
     La  información sobre las estaciones de medida se puede encontrar en el siguiente [enlace](https://datos.madrid.es/egob/catalogo/211346-1-estaciones-acusticas.csv).
 
     Para más información sobre el contenido del fichero, consultar el siguiente [documento](https://datos.madrid.es/FWProjects/egob/Catalogo/MedioAmbiente/Ruido/Ficheros/INTERPRETE%20DE%20ARCHIVO%20DE%20DATOS%20DIARIOS%20RUIDOS.pdf)
+
 - `meteor` DAG: se encarga de extraer datos meteorológicos de varios distritos de Madrid y cargarlos en un archivo CSV. La ejecución del DAG se programa diariamente a las 22:35 UTC.
 
   A continuación, se detallan las tareas del DAG:

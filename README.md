@@ -1,6 +1,14 @@
-# Práctica de Infraestructura de Big Data
+# Práctica de Infraestructuras de Big Data
 
-## 1. Despliegue :rocket:
+En esta práctica, se busca realizar un procesamiento batch de datos sobre la situación actual de la comunidad de Madrid. En concreto, se pretende extraer datos sobre la meteorología, la calidad del aire, la contaminación acústica y noticias recientes de periódicos locales. La infraestructura permitirá la extracción, procesamiento y almacenamiento de estos datos; con la finalidad de realizar una visualización de los mismos a través de un dashboard interactivo creado mediante Streamlit. Este dashboard, permitirá visualizar la situación en Madrid que hubo en un día concreto.
+
+Para ello, con una frecuencia diaria, se extraerán los datos mediante Apache Airflow (que será la herramienta que orquestará todo el flujo de datos desde la extracción hasta la propuesta de valor).
+
+Estos incrementales diarios se almacenarán en la carpeta `/raw`. Tras ello, se realizará un procesamiento paralelo de los datos en crudo con Apache Spark (PySpark) para, no solamente enriquecerlos; si no también, combinarlos con el histórico generado.
+
+Finalmente, se guardarán en una base de datos NoSQL de la cual beberá Streamlit. La elección de la base de datos NoSQL se realizará en la segunda parte de la práctica.
+
+## Despliegue :rocket:
 > [!WARNING]  
 > Es posible que sea necesario otorgar los permisos correspondientes a las carpetas `./logs` y `./raw` para que Apache Airflow pueda escribir en ellas desde el interior del contenedor. 
 > 
@@ -12,7 +20,7 @@ Para desplegar el entorno, debemos ejecutar el siguiente comando:
 docker compose up -d --build
 ```
 
-Al desplegar el entorno por primera vez, es posible que debamos inicializar manualmente el contenedor asociado al servidor web de Apache Airflow (`webserver`). 
+Al desplegar el entorno por primera vez, **es posible que debamos inicializar manualmente el contenedor asociado al servidor web de Apache Airflow** (`webserver`). 
 
 Tras ello, podremos acceder a las interfaces de Airflow y Apache Spark:
 - Apache Airflow UI: http://localhost:8080
@@ -34,10 +42,61 @@ Finalmente, para establecer la conexión de Apache Airflow con Apache Spark, deb
 > El uso de [Poetry](https://python-poetry.org/) se utiliza únicamente desde el punto de vista de desarrollo, para gestionar las dependencias del proyecto. De esta forma, se permite la realización de pruebas en local sin necesidad de desarrollar desde el interior del contenedor. Estas pruebas se realizan principalmente en los notebooks contenidos en la carpeta `./notebooks`. No obstante, ninguno de los contenedores desplegados en producción hace uso de Poetry o de los notebooks.
 
 
-## 2. Descripción de la Infraestructura Digital :page_facing_up:
-En esta práctica, se busca realizar un procesamiento batch de datos sobre la meteorología de la ciudad de Madrid. Para ello, primero se extraerán, a nivel diario, datos muy variados y heterogéneos de una gran diversidad de fuentes mediante Apache Airflow (que será la herramienta que orquestará todo el flujo de datos desde la extracción hasta la propuesta de valor). Estos incrementales diarios se almacenarán en la carpeta `/raw` (información cruda). Tras ello, se realizaría un procesamiento paralelo de los datos en crudo con Apache Spark (PySpark) para, no solamente enriquecerlos; sino también, combinarlos con el histórico generado. Finalmente, los almacenaríamos en una base de datos NoSQL de la cual bebería Streamlit, para dashboards interactivos, o MLFlow, para crear modelos de Machine Learning (nuestras propuestas de valor).
 
-Respecto a la primera parte de la arquitectura, se realizan una serie de DAGs de Airflow para extraer y cargar la información cruda en la carpeta `/raw`. Los datos que se extraen diariamente sobre la meteorología de Madrid son muy variados (indicadores básicos de lluvia o viento, métricas sobre calidad de aire, contaminación acústica, etc). Cada DAG está compuesto de dos tareas: la extracción de la información y la carga de la misma en la carpeta `/raw`. Respecto a la información extraída, se detalla la lista de DAGs a continuación:
+## Componentes de la Infraestructura :gear:
+
+Para desplegar la infraestructura de Big Data compuesta por Apache Airflow y Apache Spark de manera eficiente y coherente, se ha utilizado Docker Compose debido a su capacidad para simplificar el proceso de configuración y lanzamiento de múltiples contenedores que necesitan trabajar juntos de forma integrada. 
+
+Docker Compose permite definir en un solo archivo `docker-compose.yml` todas las configuraciones de los servicios, incluidos los volúmenes, redes y dependencias, asegurando que cada componente de la infraestructura sea desplegado en un entorno aislado y reproducible. Gracias a esta virtualización, se garantiza que las mismas versiones de software y configuraciones exactas sean utilizadas en cada despliegue, eliminando los problemas comunes relacionados con las discrepancias de "funciona en mi máquina". Además, la gestión de múltiples servicios que deben iniciarse en un orden específico y configurarse para interactuar entre ellos se maneja automáticamente, reduciendo la complejidad y aumentando la eficiencia del proceso de despliegue.
+
+Esta infraestructura está compuesta por los siguientes componentes:
+
+### Red
+La infraestrctura utiliza una red de tipo *bridge* que permite la comunicación entre los distintos contenedores. 
+
+### Apache Spark
+
+El clúster de Spark está compuesto por tres servicios:
+- **`spark-master`**: Este servicio actúa como el nodo maestro en un clúster de Spark. Es responsable de administrar y distribuir las tareas entre los nodos trabajadores (workers).
+
+- **`spark-worker-1`** y **`spark-worker-2`**: Estos dos servicios actúan como nodos trabajadores en el clúster de Spark. Se conectan al nodo maestro y son los encargados de ejecutar las tareas asignadas. Cada trabajador está configurado con 2 núcleos y 1GB de memoria RAM.
+
+> [!NOTE]
+> **Apache Spark** es un motor de procesamiento de datos que permite análisis complejos y computación distribuida. Se justifica su uso por las siguientes razones:
+>
+> - **Procesamiento en memoria**: Spark realiza el procesamiento de datos en memoria, lo que lo hace mucho más rápido que otros sistemas que acceden al disco, como Hadoop MapReduce.
+>
+> - **Facilidad para procesamiento de datos a gran escala**: Spark se diseñó para manejar petabytes de datos distribuidos a través de múltiples nodos de manera eficiente. Esto lo hace ideal para el escenario descrito, donde se manejan datos incrementales diarios de múltiples fuentes.
+
+
+### Apache Airflow
+El entorno de Airflow está compuesto por dos servicios:
+- **`webserver`**: Este servicio corre el servidor web de Airflow, que proporciona la interfaz de usuario para administrar y visualizar flujos de trabajo (DAGs). Está configurado para ejecutarse en el puerto 8080, haciendo la interfaz accesible a través de `http://localhost:8080`.
+- **`scheduler`**: Este servicio corre el programador (scheduler) de Airflow, que es responsable de programar las tareas definidas en los DAGs y ejecutarlas según sus dependencias y programación. Antes de iniciar el scheduler, realiza migraciones de base de datos y crea un usuario admin para acceder a la interfaz de Airflow.
+
+> [!NOTE]
+> **Apache Airflow** es una plataforma open-source diseñada para programar y orquestar flujos de trabajo complejos mediante programación en Python. Algunas de las razones por las cuales hemos utilizado Apache Airflow son las siguientes:
+>
+> - **Programación y orquestación flexibles**: Airflow permite definir flujos de trabajo, conocidos como DAGs (Directed Acyclic Graphs), que son visualizaciones de las tareas y sus dependencias. Esto es fundamental para procesos donde las tareas deben ejecutarse todos los días a una hora específica.
+>
+> - **Reintentos y manejo de errores**: Airflow ofrece mecanismos robustos para el manejo de fallos, incluyendo reintentos automáticos y alertas. Esto asegura que los flujos de datos no se detengan por fallos puntuales, lo cual es esencial en entornos de producción donde la continuidad y la fiabilidad son cruciales.
+>
+> - **Interfaz de usuario intuitiva**: La interfaz de usuario de Airflow nos permite visualizar la ejecución de los flujos de trabajo, monitorear el progreso y revisar registros de las tareas ejecutadas.
+> 
+> - **Escalabilidad y Integración**: Airflow se integra fácilmente con otras herramientas y plataformas, como Apache Spark para el procesamiento de datos y sistemas de bases de datos para el almacenamiento de datos. Esto permite escalar las operaciones de procesamiento conforme al volumen de datos crece, y facilita la implementación de mejoras sin grandes sobrecostos de adaptación.
+
+### PostgreSQL
+- **`postgres`**: Este servicio funciona como la base de datos para Airflow. Guarda la información sobre el estado de las tareas, los DAGs y otros metadatos necesarios para que Airflow funcione correctamente. La base de datos está configurada con las credenciales `airflow` tanto para el usuario como para la contraseña.
+
+### Volumenes
+Se configuran varios volúmenes para mantener la persistencia de los datos y el código entre reinicios de los contenedores. En concreto, varios volúmenes se mapean a las carpetas locales para que Spark y Airflow puedan acceder a scripts, DAGs, registros de ejecución y datos crudos (`./jobs`, `./dags`, `./logs`, `./raw`).
+
+## DAGs de Apache Airflow :arrows_counterclockwise:
+
+Para cargar los datos anteriormente mencionados, se realizan una serie de DAGs de Airflow para extraer y cargar la información cruda en la carpeta `/raw`. Cada DAG está compuesto de dos tareas: la extracción de la información y la carga de la misma en dicha carpeta.
+
+A continuación se detalla la lista de DAGs:
+
 - `gob_meteor` DAG: extrae el CSV incremental de datos 'Datos meteorológicos. Datos en tiempo real' 
     que proporciona el Ayuntamiento de Madrid. La URL correspondiente es:
 
@@ -125,8 +184,16 @@ Respecto a la primera parte de la arquitectura, se realizan una serie de DAGs de
 
    Los datos meteorológicos se obtienen de open-meteo.com, una plataforma que proporciona información detallada sobre varias variables meteorológicas. El DataFrame generado incluye información como la temperatura, la humedad relativa, la presión barométrica, la velocidad del viento y la radiación solar, entre otras variables.
    Para más información sobre la fuente de datos, visita [open-meteo.com](https://open-meteo.com).
- 
 
+## Las 5 V's del Big Data :bar_chart:
+El proyecto aborda las 5 Vs del Big Data de la siguiente manera:
+
+- **Volumen**: El proyecto maneja grandes volúmenes de datos, ya que se extraen datos de múltiples fuentes y se procesan diariamente. Los datos meteorológicos, de calidad del aire, de contaminación acústica y de noticias se recopilan y almacenan en bruto en la carpeta `/raw`, lo que resulta en un volumen significativo de datos a lo largo del tiempo.
+- **Velocidad**: El proyecto se centra en la velocidad de procesamiento de los datos, ya que se extraen y procesan diariamente. Los DAGs de Airflow se programan para ejecutarse diariamente a una hora específica, lo que garantiza la actualización regular de los datos.
+- **Variedad**: El proyecto maneja una variedad de datos de diferentes fuentes, así como datos de tipo estructurado y no estructurado. Los datos meteorológicos, de calidad del aire y de contaminación acústica son estructurados, mientras que los datos de noticias son no estructurados.
+- **Veracidad**: El proyecto se centra en garantizar la veracidad de los datos, ya que se extraen de fuentes oficiales, como el Ayuntamiento de Madrid. Con respecto a los datos de noticias, se obtienen datos de dos de los principales periódicos de España, *El País* y *ABC*, cada uno con diferentes enfoques y perspectivas.
+- **Valor**: El proyecto busca proporcionar valor a través de la visualización de los datos en un dashboard interactivo creado con Streamlit. Una de las principales utilidades de este dashboard es permitir a los usuarios conocer como fue la situación en Madrid en el pasado. Conocer los datos relacionados con la contaminación es esencial para tomar decisiones informadas sobre la salud y el bienestar. Los datos relacionados con la meteorología y las noticias nos permiten comprender mejor el contexto en el que se producen los eventos relacionados con la contaminación.
+  
 ## Miembros del Equipo :busts_in_silhouette:
 
 **Grupo 2:**

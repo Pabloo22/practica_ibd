@@ -46,8 +46,7 @@ def extract_mambiente_data(url):
         columns.append(f"H{i:02d}")
         columns.append(f"V{i:02d}")
 
-    df = pd.read_csv(url, names=columns, sep=",")
-
+    df = pd.read_csv(url, names=columns, sep=",", index_col=False)
     print("Show 5 first rows: ")
     print(df.head())
 

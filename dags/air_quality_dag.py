@@ -11,7 +11,7 @@ def extract_mambiente_data(url):
     ciudad de Madrid y se actualiza cada hora. La URL del fichero es la
     siguiente:
 
-        https://www.mambiente.madrid.es/opendata/horario.txt
+        https://www.mambiente.madrid.es/opendata/horario.csv
 
     > El Sistema Integral de la Calidad del Aire del Ayuntamiento de Madrid
     > permite conocer en cada momento los niveles de contaminación atmosférica
@@ -31,24 +31,11 @@ def extract_mambiente_data(url):
     """
     import pandas as pd
 
-    columns = [
-        "provincia",
-        "municipio",
-        "estacion",
-        "magnitud",
-        "punto_muestreo",
-        "ano",
-        "mes",
-        "dia",
-    ]
+    # Namespace dictionary
+    namespaces = {"bdca": "http://bdca"}
 
-    for i in range(1, 25):
-        columns.append(f"H{i:02d}")
-        columns.append(f"V{i:02d}")
-
-    df = pd.read_csv(url, names=columns, sep=",", index_col=False)
-    print("Show 5 first rows: ")
-    print(df.head())
+    # Read the XML file directly into a DataFrame using the correct namespace
+    df = pd.read_xml(url, xpath=".//bdca:Dato_Horario", namespaces=namespaces)
 
     return df
 
@@ -88,7 +75,7 @@ with DAG(
 
     @task(task_id="extract_mambiente_hourly")
     def extract():
-        url = "https://www.mambiente.madrid.es/opendata/horario.txt"
+        url = "https://www.mambiente.madrid.es/opendata/horario.xml"
 
         extracted_data = extract_mambiente_data(url)
 

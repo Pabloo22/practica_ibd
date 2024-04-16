@@ -3,6 +3,8 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.operators.python import PythonOperator
 
+from utils import extract_from_madrid_url, load_df_to_raw
+
 
 def extract_mambiente_data(url):
     """
@@ -29,15 +31,7 @@ def extract_mambiente_data(url):
     Para más información sobre el contenido del fichero, consultar el
     documento [Interprete_ficheros_calidad_del_aire_global.pdf](https://shorturl.at/ahmSZ).
     """
-    import pandas as pd
-
-    # Namespace dictionary
-    namespaces = {"bdca": "http://bdca"}
-
-    # Read the XML file directly into a DataFrame using the correct namespace
-    df = pd.read_xml(url, xpath=".//bdca:Dato_Horario", namespaces=namespaces)
-
-    return df
+    return extract_from_madrid_url(url)
 
 
 def load_air_quality(df, folder_path, filename):
@@ -48,15 +42,7 @@ def load_air_quality(df, folder_path, filename):
     El dataframe debería contener la informaciçon del CSV incremental
     correspondiente en la carpeta de información cruda "/raw".
     """
-    import os
-
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-
-    file_path = os.path.join(folder_path, filename)
-    df.to_csv(file_path, index=False)
-
-    print(f"DataFrame written to {file_path}")
+    return load_df_to_raw(df, folder_path, filename)
 
 
 default_args = {
@@ -75,7 +61,7 @@ with DAG(
 
     @task(task_id="extract_mambiente_hourly")
     def extract():
-        url = "https://www.mambiente.madrid.es/opendata/horario.xml"
+        url = "https://www.mambiente.madrid.es/opendata/horario.csv"
 
         extracted_data = extract_mambiente_data(url)
 

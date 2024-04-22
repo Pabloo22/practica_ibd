@@ -1,0 +1,14 @@
+{
+    "Servers": {
+        "1": {
+            "Name": "PostgreSQL",
+            "Group": "Servers",
+            "Host": "postgres-datawarehouse",
+            "Port": 5432,
+            "MaintenanceDB": "postgres",
+            "Username": "postgres",
+            "PassFile": "/pgpass",
+            "SSLMode": "prefer"
+        }
+    }
+  }

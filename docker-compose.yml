@@ -5,6 +5,7 @@ x-spark-common: &spark-common
   volumes:
     - ./jobs:/opt/bitnami/spark/jobs
     - ./raw:/opt/bitnami/spark/raw:rw
+    - ./rich:/opt/bitnami/spark/rich:rw
   networks:
     - project_network
 
@@ -19,6 +20,7 @@ x-airflow-common: &airflow-common
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ./raw:/opt/airflow/raw
+    - ./rich:/opt/airflow/rich
   depends_on:
     - postgres
   networks:
@@ -97,6 +99,46 @@ services:
   scheduler:
     <<: *airflow-common
     command: bash -c "airflow db migrate && airflow users create --username admin --firstname test_owner --lastname test_owner --role Admin --email test_owner@gmail.com --password admin && airflow scheduler"
+
+  postgres-datawarehouse:
+      image: postgres:15
+      environment:
+          - POSTGRES_USER=postgres
+          - POSTGRES_PASSWORD=password
+      volumes:
+          - postgres-db-volume:/var/lib/postgresql/data
+          - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+          - ./rich:/rich
+      ports:
+          - 5432:5432
+      networks:
+          - project_network
+      command: ["postgres", "-c", "max_connections=300"]
+  pgadmin:
+      image: dpage/pgadmin4
+      environment:
+          PGADMIN_DEFAULT_EMAIL: 'teste@teste.com'
+          PGADMIN_DEFAULT_PASSWORD: 'teste'
+      ports:
+          - 16543:80
+      volumes:
+          - ./pgadmin4/servers.json:/pgadmin4/servers.json
+      networks:
+          - project_network
+
+volumes:
+    postgres-db-volume:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ./data
+    pgadmin-data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ./pgadmin4/data
 
 networks:
   project_network:

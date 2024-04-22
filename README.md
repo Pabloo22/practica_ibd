@@ -88,6 +88,12 @@ El entorno de Airflow está compuesto por dos servicios:
 ### PostgreSQL
 - **`postgres`**: Este servicio funciona como la base de datos para Airflow. Guarda la información sobre el estado de las tareas, los DAGs y otros metadatos necesarios para que Airflow funcione correctamente. La base de datos está configurada con las credenciales `airflow` tanto para el usuario como para la contraseña.
 
+- **`pgAdmin4`**: Este servicio proporciona una interfaz web para administrar y visualizar la base de datos PostgreSQL. Se puede acceder a la interfaz en http://localhost:16543. Las credenciales de acceso son:
+    - Correo electrónico: `teste@teste.com`
+    - Contraseña: `teste`
+      
+Al ingresar a la interfaz, se solicitará una contraseña para acceder al servidor de la base de datos, la cual es `password`.
+
 ### Volúmenes
 Se configuran varios volúmenes para mantener la persistencia de los datos y el código entre reinicios de los contenedores. En concreto, varios volúmenes se mapean a las carpetas locales para que Spark y Airflow puedan acceder a scripts, DAGs, registros de ejecución y datos crudos (`./jobs`, `./dags`, `./logs`, `./raw`).
 

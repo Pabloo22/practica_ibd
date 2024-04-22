@@ -20,7 +20,7 @@ Para desplegar el entorno, debemos ejecutar el siguiente comando:
 docker compose up -d --build
 ```
 
-Al desplegar el entorno por primera vez, **es posible que debamos inicializar manualmente el contenedor asociado al servidor web de Apache Airflow** (`webserver`). 
+Al desplegar el entorno por primera vez, **es posible que debamos inicializar manualmente el contenedor asociado al servidor web de Apache Airflow** (`webserver`). No obstante, tras la adición de "restart: on-failure" en la nueva versión, esto ya no es necesario.
 
 Tras ello, podremos acceder a las interfaces de Airflow y Apache Spark:
 - Apache Airflow UI: http://localhost:8080
@@ -35,6 +35,15 @@ Finalmente, para establecer la conexión de Apache Airflow con Apache Spark, deb
  - Connection Type: `Spark`
  - Host: `spark://spark-master`
  - Port: `7077` 
+
+ También, debemos especificar la conexión con Postgres en el panel `/Admin/Connections` de Airflow:
+ - Connection Id: `postgres_default`
+ - Connection Type: `Postgres`
+ - Host: `postgres-datawarehouse`
+ - Schema: `postgres`
+ - Login: `postgres`
+ - Password: `password`
+ - Port: `5432`
 
 > [!NOTE]  
 > En el [Dockerfile](Dockerfile) se han especificado todas las versiones de todas las dependencias del proyecto meticulosamente para evitar conflictos de versiones en el futuro.

@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import lit, col, concat, create_map
+from pyspark.sql.functions import lit, col, concat, create_map, round
 
 from datetime import datetime, timedelta
 from itertools import chain
@@ -22,8 +22,6 @@ def merge_csv_files(csv_files):
     dfs = []
     for file in csv_files:
         df = spark.read.option("header", "true").csv(file)
-        date = file.split("_")[2].split(".")[0]  # Extract date from file name
-        df = df.withColumn("date", lit(date))
         dfs.append(df)
 
     # Merge all DataFrames into a single DataFrame
@@ -51,6 +49,7 @@ if __name__ == "__main__":
 
     # Generate the list of filenames
     last_week_dates = last_seven_days()
+    last_Sunday = last_week_dates[0]
 
     air_quality_list = [f"/opt/***/raw/air_quality_{date}.csv" for date in last_week_dates]
     # contaminacion_acustica_list = [f"/opt/***/raw/contaminacion_acustica_{date}.csv" for date in last_week_dates]
@@ -119,13 +118,15 @@ if __name__ == "__main__":
     hour_columns = ["H{:02d}".format(i) for i in range(1, 25)]
     avg_hour_expr = sum(col(hour) for hour in hour_columns) / 24
 
-    air_quality_output = air_quality_df.withColumn("measure", avg_hour_expr) \
+    air_quality_output = air_quality_df.withColumn("measure", round(avg_hour_expr, 2)) \
                 .withColumn("date", concat(col("ANO"), lit("-"), col("MES"), lit("-"), col("DIA"))) \
                 .withColumn("station_id", air_quality_estacion_mapping.getItem(col("ESTACION"))) \
                 .withColumn("metric_id", air_quality_metric_mapping.getItem(col("MAGNITUD"))) \
                 .select("metric_id", "station_id", "measure", "date")
     
     air_quality_output.show()
+
+    air_quality_output.coalesce(1).write.csv(f"/opt/airflow/rich/air_quality_{last_Sunday}", header=True) #bitnami/spark
 
     # Stop SparkSession
     spark.stop()

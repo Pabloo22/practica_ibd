@@ -1,7 +1,11 @@
 logs/*
 raw/*
+data/*
+rich/*
 !logs/.gitkeep
 !raw/.gitkeep
+!data/.gitkeep
+!rich/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

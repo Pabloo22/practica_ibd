@@ -22,6 +22,7 @@ scipy = "^1.13.0"
 branca = "^0.7.2"
 streamlit-folium = "^0.20.0"
 psycopg2-binary = "^2.9.9"
+plotly = "^5.22.0"
 
 
 [build-system]

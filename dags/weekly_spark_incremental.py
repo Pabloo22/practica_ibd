@@ -53,7 +53,7 @@ with DAG(
 
     last_Sunday_task = last_Sunday()
 
-    filename_task = get_csv_filename(f'/opt/airflow/rich/air_quality_{last_Sunday_task}')
+    filename_task = get_csv_filename(f'/opt/airflow/rich/final_df_{last_Sunday_task}')
     
     load_rich_task = PostgresOperator(
         task_id='load_data_to_postgres',
@@ -61,7 +61,7 @@ with DAG(
         #sql="""INSERT INTO fact_measure (metric_id, station_id, measure, date)
         #        VALUES (1, 1, 34, '2024-04-18')"""
         sql=f"""COPY fact_measure (metric_id, station_id, measure, date) 
-            FROM '/rich/air_quality_{last_Sunday_task}/{filename_task}' 
+            FROM '/rich/final_df_{last_Sunday_task}/{filename_task}' 
             WITH (FORMAT CSV, HEADER TRUE)"""
         #part-00000-9924a971-ecb6-4c73-a116-67da25120143-c000.csv
     )

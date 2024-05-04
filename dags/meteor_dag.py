@@ -24,7 +24,7 @@ def extract_meteor_data(dictionary):
         
         curl_command = [
             'curl',
-            f"https://archive-api.open-meteo.com/v1/era5?latitude={latitud}&longitude={longitud}&start_date={start_date}&end_date={end_date}&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation,rain,snowfall,snow_depth,weather_code,pressure_msl,surface_pressure,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,et0_fao_evapotranspiration,vapour_pressure_deficit,wind_speed_10m,wind_speed_100m,wind_direction_10m,wind_direction_100m,wind_gusts_10m,soil_temperature_0_to_7cm,soil_temperature_7_to_28cm,soil_temperature_28_to_100cm,soil_temperature_100_to_255cm,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,soil_moisture_28_to_100cm,soil_moisture_100_to_255cm,shortwave_radiation,direct_radiation,diffuse_radiation,direct_normal_irradiance,global_tilted_irradiance,terrestrial_radiation,shortwave_radiation_instant,direct_radiation_instant,diffuse_radiation_instant,direct_normal_irradiance_instant,global_tilted_irradiance_instant,terrestrial_radiation_instant"
+            f"https://archive-api.open-meteo.com/v1/era5?latitude={latitud}&longitude={longitud}&start_date={start_date}&end_date={end_date}&hourly=snowfall,snow_depth,cloud_cover,soil_temperature_0_to_7cm,soil_moisture_0_to_7cm,terrestrial_radiation"
         ]
         
         try:

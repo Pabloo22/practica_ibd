@@ -125,6 +125,19 @@ services:
           - ./pgadmin4/servers.json:/pgadmin4/servers.json
       networks:
           - project_network
+  
+  streamlit:
+      build:
+          context: ./web_app
+          dockerfile: Dockerfile
+      ports:
+          - 8090:8501
+      volumes:
+          - ./web_app:/app
+      networks:
+          - project_network
+      command: streamlit run /app/Main_Page.py
+
 
 volumes:
     postgres-db-volume:

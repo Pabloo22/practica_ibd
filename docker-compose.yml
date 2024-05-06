@@ -136,7 +136,7 @@ services:
           - ./web_app:/app
       networks:
           - project_network
-      command: streamlit run /app/Main_Page.py
+      command: streamlit run /app/Medioambiente.py
   mongodb:
     image: mongo:latest
     ports:

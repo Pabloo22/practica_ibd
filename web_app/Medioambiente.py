@@ -61,7 +61,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.title("Main Page")
+st.title("Medioambiente")
 
 conn = st.connection("postgresql", type="sql")
 query_metricas = """
@@ -73,7 +73,7 @@ metricas = conn.query(query_metricas)
 dict_metrics = metricas.set_index("metric_id").to_dict()["metric_name"]
 
 metric = st.sidebar.selectbox(
-    "Select metric",
+    "Selecciona una métrica",
     dict_metrics.keys(),
     format_func=lambda x: dict_metrics[x],
 )
@@ -114,7 +114,7 @@ station_names = estaciones["station_name"].values
 try:
     regions = create_regions(coords, ids, station_names)
 except Exception as e:
-    "# There is no data"
+    "# No hay datos disponibles para esta fecha."
     st.stop()
 
 m = folium.Map()
@@ -169,12 +169,12 @@ if st_data["last_object_clicked_popup"]:
     historico_estacion = conn.query(query_historico_estacion)
     # Plot in a line chart
     metric_name = dict_metrics[metric]
-    f"# Historical data: for the station {station_name}"
+    f"# Datos históricos para la estación {station_name}"
     fig = px.line(
         historico_estacion,
         x="date",
         y="measure",
-        title=f"Measurements for the station {station_name}",
+        # title=f"Measurements for the station {station_name}",
         labels={"measure": metric_name, "date": "Date"},
     )
     st.plotly_chart(fig)

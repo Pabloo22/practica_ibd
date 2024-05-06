@@ -29,9 +29,21 @@ def extract_contaminacion_acustica(url):
 
     df = pd.read_csv(url, sep=";", decimal=",", encoding="ISO-8859-1")
 
-    # If column Año exists, rename it to anio
-    if "Año" in df.columns:
-        df.rename(columns={"Año": "anio"}, inplace=True)
+    reverse_column_mapping = {
+        "NMT": "NMT",
+        "Año": "anio",
+        "Mes": "mes",
+        "Dia": "dia",
+        "Tipo": "tipo",
+        "LAeq": "LAEQ",
+        "L1": "LAS01",
+        "L10": "LAS10",
+        "L50": "LAS50",
+        "L90": "LAS90",
+        "L99": "LAS99",
+    }
+
+    df = df.rename(columns=reverse_column_mapping)
 
     print("Show 5 first rows: ")
     print(df.head())

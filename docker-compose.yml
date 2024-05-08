@@ -106,7 +106,7 @@ services:
           - POSTGRES_USER=postgres
           - POSTGRES_PASSWORD=password
       volumes:
-          - postgres-db-volume:/var/lib/postgresql/data
+          - postgres-db-volume:/var/lib/postgresql
           - ./init.sql:/docker-entrypoint-initdb.d/init.sql
           - ./rich:/rich
       ports:

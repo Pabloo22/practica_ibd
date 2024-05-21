@@ -106,7 +106,7 @@ Al ingresar a la interfaz, se solicitará una contraseña para acceder al servid
 ### Volúmenes
 Se configuran varios volúmenes para mantener la persistencia de los datos y el código entre reinicios de los contenedores. En concreto, varios volúmenes se mapean a las carpetas locales para que Spark y Airflow puedan acceder a scripts, DAGs, registros de ejecución y datos crudos (`./jobs`, `./dags`, `./logs`, `./raw`).
 
-## DAGs de Apache Airflow :arrows_counterclockwise:
+## DAGs de Extracción de Apache Airflow :arrows_counterclockwise:
 
 Para cargar los datos anteriormente mencionados, se realizan una serie de DAGs de Airflow para extraer y cargar la información cruda en la carpeta `/raw`. Cada DAG está compuesto de dos tareas: la extracción de la información y la carga de la misma en dicha carpeta.
 
@@ -199,6 +199,22 @@ A continuación se detalla la lista de DAGs:
 
    Los datos meteorológicos se obtienen de open-meteo.com, una plataforma que proporciona información detallada sobre varias variables meteorológicas. El DataFrame generado incluye información como la temperatura, la humedad relativa, la presión barométrica, la velocidad del viento y la radiación solar, entre otras variables.
    Para más información sobre la fuente de datos, visita [open-meteo.com](https://open-meteo.com).
+
+## Explicación de Flujo Completo de ETL
+Tras realizar esta extracción incremental diaria (volcando los correspondientes datos en la carpeta /raw), se ejecuta un DAG de Airflow con PySpark semanalmente para cargar los nuevos incrementales en el datawarehouse. Este datawarehouse se ha desplegado en PostgreSQL puesto que no solamente soporta funcionalidades de OLTP; sino también de OLAP (nuestro caso de uso).
+
+En el datawarehouse, se ha optado por implementar un modelo Kimball. Todos los detalles de este modelo (las tablas a implementar, los mappeos correspondientes de antiguos IDs con los nuevos, la normalización de algunas estaciones repetidas, etc) se pueden encontrar en el Excel “Final_Kimball_Model”. A modo general, el modelo posee las siguientes tablas:
+
+- **Measures (Fact Table)**: actualizada cada semana con los nuevos datos de los incrementales. Posee los siguientes campos: “measure_id”, una clave primaria autoincremental (que también actúa como clave surrogada); “metric_id”, una clave foránea que conecta con la tabla dimensional de Metrics; “station_id”, una clave foránea que conecta con la tabla dimensional de Stations; “measure”, valor cuantitativo de la medida; y “date”, fecha en la que se ha obtenido la medida (muy útil para los posteriores filtros en la parte de visualización)
+- **Stations (Dimensional Table)**: se ingesta una única vez al desplegar la infraestructura de datos en el script de inicialización de PostgreSQL. Posee los siguientes campos: “station_id”, clave primaria; “station_name”, nombre de la estación; “district_name”, nombre del distrito; “longitude”, longitud (coordenada); y “latitude”, latitud (coordenada)
+- **Metrics (Dimensional Table)**: se ingesta una única vez al desplegar la infraestructura de datos en el script de inicialización de PostgreSQL. Posee los siguientes campos: “metric_id”, clave primaria; y “metric_name”, nombre de la métrica.
+
+
+Respecto al procesamiento semanal, todos los lunes por la mañana (a las 9:00 en UTC) se ejecuta el DAG **“weekly_spark_incremental”**. Este DAG se compone principalmente de dos tasks:
+- **“transform_task”**: se ejecuta un job de PySpark donde se realiza el respectivo procesamiento para  transformar los datos en /raw de la semana pasada al formato correspondiente a la FACT table de Measures. Este job de PySpark con 4 worker nodes se realiza en el script “enrich_spark.py”. En él, se realizan las transformaciones necesarias para todas las tablas (mappeos de station_id y metric_id, cálculo agregado de la medida “measure” realizando la media aritmética, concatenación de strings, procesamiento de fechas, filtros específicos, etc). Finalmente, todos los datos enriquecidos con el nuevo formato se guardan en el volumen /rich. Como se puede apreciar, los volúmenes /raw y /rich están funcionando como data lakes (AWS S3, ADLS, etc) en nuestra arquitectura delta.
+- **“load_rich_task”**: tras transformar los nuevos incrementales al formato de la FACT table en la task de PySpark, se deben insertar en la base de datos de PostgreSQL con la sentencia de COPY leyendo los datos enriquecidos del volumen /rich.
+
+
 
 ## Las 5 V's del Big Data :bar_chart:
 El proyecto aborda las 5 Vs del Big Data de la siguiente manera:

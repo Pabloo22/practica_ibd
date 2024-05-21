@@ -14,4 +14,9 @@ RUN pip install --upgrade pip && \
     apache-airflow-providers-apache-spark==4.7.1 \
     pyspark==3.4.0 \
     beautifulsoup4==4.12.3 \
-    lxml==5.2.0
+    lxml==5.2.0 \
+    textblob==0.17.1 \
+    pymongo==4.3.3
+
+# Download NLTK data required by TextBlob
+RUN python -m textblob.download_corpora

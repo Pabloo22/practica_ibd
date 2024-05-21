@@ -1,3 +1,6 @@
+mongodb_data/*
+!mongodb_data/.gitkeep
+
 logs/*
 raw/*
 data/*

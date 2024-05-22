@@ -44,6 +44,16 @@ Finalmente, para establecer la conexión de Apache Airflow con Apache Spark, deb
  - Login: `postgres`
  - Password: `password`
  - Port: `5432`
+  
+  Por último, debemos añadir la conexión a MongoDB en este mismo panel:
+  - Connection Id: `mongo-conn`
+  - Connection Type: `MongoDB`
+  - Host: `mongodb`
+  - Port: `27017`
+
+<div align="center">
+<image src="images/mongo-conection.png" width="80%">
+</div>
 
 > [!NOTE]  
 > En el [Dockerfile](Dockerfile) se han especificado todas las versiones de todas las dependencias del proyecto meticulosamente para evitar conflictos de versiones en el futuro.

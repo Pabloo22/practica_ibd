@@ -1,17 +1,26 @@
-from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
-from pymongo import MongoClient
 import json
-from datetime import datetime
+
+from airflow.providers.apache.spark.operators.spark_submit import (
+    SparkSubmitOperator,
+)
+from airflow.providers.mongo.hooks.mongo import MongoHook
+from airflow import DAG
+from airflow.decorators import task
+import pendulum
+
 
 default_args = {
-    "start_date": datetime(2024, 1, 1),
-    "retries": 1,
+    "start_date": pendulum.datetime(2024, 4, 1, tz="UTC"),
+    "retries": 2,
+    "retry_delay": pendulum.duration(seconds=2),
+    "catchup": False,
 }
 
 
+@task(task_id="load_to_mongodb")
 def load_to_mongodb():
-    client = MongoClient(host="mongodb", port=27017)
+    mongo_hook = MongoHook("mongo-conn")
+    client = mongo_hook.get_conn()
     db = client.noticias_db
     collection = db.noticias
 
@@ -27,14 +36,16 @@ def load_to_mongodb():
 
 with DAG(
     dag_id="load_noticias_to_mongodb_dag",
-    schedule_interval="@daily",
+    schedule_interval="0 9 * * 1",
     default_args=default_args,
     catchup=False,
 ) as dag:
-
-    load_to_mongodb_task = PythonOperator(
-        task_id="load_to_mongodb",
-        python_callable=load_to_mongodb,
+    sentiment_analysis_task = SparkSubmitOperator(
+        task_id="run_sentiment_analysis",
+        application="/opt/bitnami/spark/jobs/sentiment_analysis.py",
+        conn_id="spark-conn",
+        verbose=True,
     )
-
-    load_to_mongodb_task  # pylint: disable=pointless-statement
+    load_to_mongodb_task = load_to_mongodb()  # pylint: disable=invalid-name
+    # pylint: disable=pointless-statement
+    sentiment_analysis_task >> load_to_mongodb_task

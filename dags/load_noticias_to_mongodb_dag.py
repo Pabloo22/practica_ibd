@@ -33,7 +33,16 @@ def load_to_mongodb():
         encoding="utf-8",
     ) as f:
         data = json.load(f)
-        collection.insert_many(data)
+        for item in data:
+            # Check if news with the same title already exist (if so, update them)
+            existing_news = collection.find_one({"title": item["title"]})
+            if existing_news:
+                # Update the existing news item
+                collection.update_one({"title": item["title"]}, {"$set": item})
+            else:
+                # Insert the new news item
+                collection.insert_one(item)
+
 
 try:
     with DAG(
@@ -48,7 +57,9 @@ try:
             conn_id="spark-conn",
             verbose=True,
         )
-        load_to_mongodb_task = load_to_mongodb()  # pylint: disable=invalid-name
+        load_to_mongodb_task = (
+            load_to_mongodb()
+        )  # pylint: disable=invalid-name
         # pylint: disable=pointless-statement
         sentiment_analysis_task >> load_to_mongodb_task
 except Exception as e:

@@ -26,6 +26,8 @@ plotly = "^5.22.0"
 apache-airflow-providers-mongo = "^4.1.0"
 dnspython = "^2.6.1"
 textblob = "^0.18.0.post0"
+torch = "^2.3.0"
+transformers = "^4.41.0"
 
 
 [build-system]

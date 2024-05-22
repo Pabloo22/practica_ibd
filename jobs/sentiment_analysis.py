@@ -1,10 +1,12 @@
 import os
 import json
+from functools import partial
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf, lit
 from pyspark.sql.types import FloatType
-from textblob import TextBlob  # type: ignore[import-untyped]
+from transformers import pipeline
+
 
 from enrich_spark import last_seven_days
 
@@ -13,13 +15,32 @@ RAW_DIR = "/opt/airflow/raw"
 RICH_DIR = "/opt/airflow/rich"
 OUTPUT_PATH = f"{RICH_DIR}/noticias_with_sentiment.json"
 
+# Local dirs
+RAW_DIR = "raw"
+RICH_DIR = "rich"
+OUTPUT_PATH = f"{RICH_DIR}/noticias_with_sentiment.json"
+
 DATE_LEN = len("yyyy_mm_dd")
 EXTENSION_LEN = len(".json")
 
 
-def calculate_sentiment(text):
-    """UDF to calculate sentiment"""
-    return TextBlob(text).sentiment.polarity
+def get_classifier():
+    model_ckpt = "mrm8488/electricidad-small-finetuned-sst2-es"
+    return pipeline("sentiment-analysis", model=model_ckpt)
+
+
+def predict(classifier, text):
+    label, score = classifier(text)[0].values()
+
+    # Change to the range [-1, 1] (prob_pos - prob_neg)
+    if label == "LABEL_0":
+        negative_probability = score
+        positive_probability = 1 - score
+    else:
+        positive_probability = score
+        negative_probability = 1 - score
+
+    return positive_probability - negative_probability
 
 
 def main():
@@ -31,6 +52,8 @@ def main():
     )
 
     # Register UDF
+    classifier = get_classifier()
+    calculate_sentiment = partial(predict, classifier)
     sentiment_udf = udf(calculate_sentiment, FloatType())
 
     # Generate the list of filenames from the last seven days
@@ -64,7 +87,7 @@ def main():
 
     # Add sentiment column
     combined_df_with_sentiment = combined_df.withColumn(
-        "sentiment", sentiment_udf(combined_df["description"])
+        "sentiment", sentiment_udf(combined_df["title"])
     )
     data = combined_df_with_sentiment.toJSON().collect()
     json_data = [json.loads(row) for row in data]

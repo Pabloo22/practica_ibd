@@ -15,9 +15,7 @@ RUN pip install --upgrade pip && \
     pyspark==3.4.0 \
     beautifulsoup4==4.12.3 \
     lxml==5.2.0 \
-    textblob==0.17.1 \
     pymongo==4.7.2 \
-    apache-airflow-providers-mongo==4.1.0
-
-# Download NLTK data required by TextBlob
-RUN python -m textblob.download_corpora
+    apache-airflow-providers-mongo==4.1.0 \
+    torch==2.3.0 \
+    transformers==4.41.0

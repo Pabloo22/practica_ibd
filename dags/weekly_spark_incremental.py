@@ -26,44 +26,47 @@ with DAG(
     default_args=default_args,
 ) as dag:
 
-    
     transform_task = SparkSubmitOperator(
         task_id="transform_to_fact_rows",
         conn_id="spark-conn",
         application="jobs/enrich_spark.py",
-        verbose=True
-
+        verbose=True,
     )
-    
-    @task(task_id='last_Sunday')
+
+    @task(task_id="last_Sunday")
     def last_Sunday():
         today = datetime.today()
-        dates = [today - timedelta(days=i) for i in range(1, 8)]
-        formatted_dates = [date.strftime("%Y_%m_%d") for date in dates]
+        # Monday is 0 and Sunday is 6, so we need to add 1 to the weekday and mod by 7
+        offset = (today.weekday() + 1) % 7
+        last_sunday = today - timedelta(days=offset)
+        formatted_date = last_sunday.strftime("%Y_%m_%d")
 
-        return formatted_dates[0]
+        return formatted_date
 
-    @task(task_id='filename_rich')
+    @task(task_id="filename_rich")
     def get_csv_filename(folder_path):
-        #folder_path = '/opt/airflow/rich/air_quality_2024_04_20'
-        csv_files = [file for file in os.listdir(folder_path) if file.endswith('.csv')]
+        # folder_path = '/opt/airflow/rich/air_quality_2024_04_20'
+        csv_files = [
+            file for file in os.listdir(folder_path) if file.endswith(".csv")
+        ]
         print(csv_files[0])
         return csv_files[0]
 
-
     last_Sunday_task = last_Sunday()
 
-    filename_task = get_csv_filename(f'/opt/airflow/rich/final_df_{last_Sunday_task}')
-    
+    filename_task = get_csv_filename(
+        f"/opt/airflow/rich/final_df_{last_Sunday_task}"
+    )
+
     load_rich_task = PostgresOperator(
-        task_id='load_data_to_postgres',
-        postgres_conn_id='postgres_default',  # Connection ID configured in Airflow for PostgreSQL
-        #sql="""INSERT INTO fact_measure (metric_id, station_id, measure, date)
+        task_id="load_data_to_postgres",
+        postgres_conn_id="postgres_default",  # Connection ID configured in Airflow for PostgreSQL
+        # sql="""INSERT INTO fact_measure (metric_id, station_id, measure, date)
         #        VALUES (1, 1, 34, '2024-04-18')"""
         sql=f"""COPY fact_measure (metric_id, station_id, measure, date) 
             FROM '/rich/final_df_{last_Sunday_task}/{filename_task}' 
-            WITH (FORMAT CSV, HEADER TRUE)"""
-        #part-00000-9924a971-ecb6-4c73-a116-67da25120143-c000.csv
+            WITH (FORMAT CSV, HEADER TRUE)""",
+        # part-00000-9924a971-ecb6-4c73-a116-67da25120143-c000.csv
     )
 
     end_task = PythonOperator(
@@ -71,6 +74,12 @@ with DAG(
         python_callable=lambda: print("Jobs completed successfully"),
     )
 
-    #transform_task >> load_rich_task >> end_task
-    #load_rich_task >> end_task
-    transform_task >> last_Sunday_task >> filename_task >> load_rich_task >> end_task
+    # transform_task >> load_rich_task >> end_task
+    # load_rich_task >> end_task
+    (
+        transform_task
+        >> last_Sunday_task
+        >> filename_task
+        >> load_rich_task
+        >> end_task
+    )

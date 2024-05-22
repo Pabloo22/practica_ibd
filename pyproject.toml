@@ -23,6 +23,9 @@ branca = "^0.7.2"
 streamlit-folium = "^0.20.0"
 psycopg2-binary = "^2.9.9"
 plotly = "^5.22.0"
+apache-airflow-providers-mongo = "^4.1.0"
+dnspython = "^2.6.1"
+textblob = "^0.18.0.post0"
 
 
 [build-system]

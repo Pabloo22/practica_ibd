@@ -137,6 +137,14 @@ services:
       networks:
           - project_network
       command: streamlit run /app/Main_Page.py
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - project_network
 
 
 volumes:
@@ -152,6 +160,12 @@ volumes:
             type: none
             o: bind
             device: ./pgadmin4/data
+    mongodb-data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ./mongodb_data/
 
 networks:
   project_network:

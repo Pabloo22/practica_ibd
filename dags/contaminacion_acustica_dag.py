@@ -27,7 +27,11 @@ def extract_contaminacion_acustica(url):
     import numpy as np
     import pandas as pd
 
-    df = pd.read_csv(url, sep=";", decimal=",")
+    df = pd.read_csv(url, sep=";", decimal=",", encoding="ISO-8859-1")
+
+    # If column Año exists, rename it to anio
+    if "Año" in df.columns:
+        df.rename(columns={"Año": "anio"}, inplace=True)
 
     print("Show 5 first rows: ")
     print(df.head())

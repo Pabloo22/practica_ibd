@@ -16,7 +16,8 @@ RUN pip install --upgrade pip && \
     beautifulsoup4==4.12.3 \
     lxml==5.2.0 \
     textblob==0.17.1 \
-    pymongo==4.3.3
+    pymongo==4.7.2 \
+    apache-airflow-providers-mongo==4.1.0
 
 # Download NLTK data required by TextBlob
 RUN python -m textblob.download_corpora

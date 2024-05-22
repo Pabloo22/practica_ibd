@@ -73,8 +73,8 @@ st.write(f"### Noticias para el {fecha_str.replace('_', '/')}")
 
 for item in items:
     st.write(f"### {item['title']}")
-    st.write(f"**Journal:** {item['journal'].replace('_', ' ')}")
-    st.write(f"**Description:** {item['description']}")
+    st.write(f"**Periódico:** {item['journal'].replace('_', ' ')}")
+    st.write(f"**Descripción:** {item['description']}")
     st.write(f"**Sentiment:** {item['sentiment']}")
     # Dislay the sentiment with a horizontal bar
     # -1 is negative, 0 is neutral, 1 is positive

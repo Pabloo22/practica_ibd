@@ -22,8 +22,6 @@ bash run.sh
 
 o el fichero [`run.bat`](run.bat), si se está utilizando Windows. Estos scripts se encargan de preparar el entorno y ejecutar el comando `docker-compose up --build` para desplegar los contenedores necesarios.
 
-Al desplegar el entorno por primera vez, **es posible que debamos inicializar manualmente el contenedor asociado al servidor web de Apache Airflow** (`webserver`). No obstante, tras la adición de "restart: on-failure" en la nueva versión, esto ya no es necesario.
-
 Tras ello, podremos acceder a las interfaces de Airflow y Apache Spark:
 - Apache Airflow UI: http://localhost:8080
 - Apache Spark UI: http://localhost:9090
@@ -32,7 +30,7 @@ Las credenciales de acceso a Apache Airflow son las siguientes:
 - Username:`admin`
 - Password: `admin`
 
-Finalmente, para establecer la conexión de Apache Airflow con Apache Spark, debemos especificar manualmente los siguientes parámetros en el panel `/Admin/Connections` de Airflow:
+Finalmente, para establecer la conexión de Apache Airflow con Apache Spark, debemos especificar los siguientes parámetros en el panel `/Admin/Connections` de Airflow:
  - Connection Id: `spark-conn`
  - Connection Type: `Spark`
  - Host: `spark://spark-master`

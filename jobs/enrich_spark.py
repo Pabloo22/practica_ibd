@@ -1,4 +1,3 @@
-import os
 from datetime import datetime, timedelta
 from itertools import chain
 
@@ -26,15 +25,25 @@ from mappings import (
 
 
 RAW_DIR = "/opt/***/raw"
-RICH_DIR = "/opt/***/rich"
+RICH_DIR = "/opt/airflow/rich"
 
 # For local execution uncomment the following lines:
 # RAW_DIR = "raw"
 # RICH_DIR = "rich"
 
 
-# Function to generate the last 7 days dates in the format YYYY_MM_DD
-def last_seven_days():
+def last_Sunday():
+    today = datetime.today()
+    # Monday is 0 and Sunday is 6, so we need to add 1 to the weekday and mod by 7
+    offset = (today.weekday() + 1) % 7
+    last_sunday_ = today - timedelta(days=offset)
+    formatted_date = last_sunday_.strftime("%Y_%m_%d")
+
+    return formatted_date
+
+
+def last_seven_days() -> list[str]:
+    """Generates the last 7 days dates in the format YYYY_MM_DD"""
     today = datetime.today()
     dates = [today - timedelta(days=i) for i in range(1, 8)]
     formatted_dates = [date.strftime("%Y_%m_%d") for date in dates]
@@ -42,7 +51,7 @@ def last_seven_days():
     return formatted_dates
 
 
-def merge_csv_files(csv_files):
+def merge_csv_files(spark_session, csv_files: list[str]):
     # List of CSV files
     # csv_files = ["/opt/***/raw/air_quality_2024_04_09.csv",
     # "/opt/***/raw/air_quality_2024_04_10.csv"]
@@ -50,13 +59,12 @@ def merge_csv_files(csv_files):
     # Read each CSV file and add a new column for the date
     dfs = []
     for file in csv_files:
-        if not os.path.exists(file):
-            print(f"File not found: {file}")
-            continue
-        # Spark is used from global scope
-        # pylint: disable=used-before-assignment
-        df = spark.read.option("header", "true").csv(file)
-        dfs.append(df)
+        try:
+            df = spark_session.read.option("header", "true").csv(file)
+            dfs.append(df)
+        except Exception as e:
+            print(f"Error reading file: {file}")
+            print(e)
 
     if not dfs:
         raise ValueError(
@@ -88,7 +96,7 @@ if __name__ == "__main__":
 
     # Generate the list of filenames
     last_week_dates = last_seven_days()
-    last_Sunday = last_week_dates[0]
+    last_sunday = last_Sunday()
 
     air_quality_list = [
         f"{RAW_DIR}/air_quality_{date}.csv" for date in last_week_dates
@@ -104,10 +112,12 @@ if __name__ == "__main__":
         f"{RAW_DIR}/open_meteo_{date}.csv" for date in last_week_dates
     ]
 
-    air_quality_df = merge_csv_files(air_quality_list)
-    gob_meteor_df = merge_csv_files(gob_meteor_list)
-    contaminacion_acustica_df = merge_csv_files(contaminacion_acustica_list)
-    open_meteo_df = merge_csv_files(open_meteo_list)
+    air_quality_df = merge_csv_files(spark, air_quality_list)
+    gob_meteor_df = merge_csv_files(spark, gob_meteor_list)
+    contaminacion_acustica_df = merge_csv_files(
+        spark, contaminacion_acustica_list
+    )
+    open_meteo_df = merge_csv_files(spark, open_meteo_list)
 
     # 1. air_quality
     air_quality_estacion_mapping = create_map(
@@ -293,7 +303,7 @@ if __name__ == "__main__":
     )
 
     final_df.coalesce(1).write.csv(
-        f"{RICH_DIR}/final_df_{last_Sunday}", header=True
+        f"{RICH_DIR}/final_df_{last_sunday}", header=True
     )  # bitnami/spark
 
     # Stop SparkSession

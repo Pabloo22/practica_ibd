@@ -1,7 +1,7 @@
-import pendulum
 import os
 from datetime import datetime, timedelta
 
+import pendulum
 from airflow import DAG
 from airflow.decorators import task
 from airflow.operators.python import PythonOperator
@@ -18,6 +18,7 @@ default_args = {
     "retry_delay": pendulum.duration(seconds=2),
     "catchup": False,
 }
+
 
 with DAG(
     dag_id="weekly_spark_incremental",
@@ -47,7 +48,9 @@ with DAG(
     def get_csv_filename(folder_path):
         # folder_path = '/opt/airflow/rich/air_quality_2024_04_20'
         csv_files = [
-            file for file in os.listdir(folder_path) if file.endswith(".csv")
+            file
+            for file in os.listdir(folder_path)
+            if file.endswith(".csv")
         ]
         print(csv_files[0])
         return csv_files[0]

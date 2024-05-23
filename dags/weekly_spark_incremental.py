@@ -76,6 +76,7 @@ with DAG(
 
     # transform_task >> load_rich_task >> end_task
     # load_rich_task >> end_task
+    # pylint: disable=pointless-statement
     (
         transform_task
         >> last_Sunday_task

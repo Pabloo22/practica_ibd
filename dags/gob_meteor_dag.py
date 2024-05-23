@@ -62,10 +62,7 @@ with DAG(
 
     @task(task_id="load_df_to_raw")
     def load_raw(df):
-        # Retrieve the Pandas DataFrame
         print(df.head())
-
-        # Define the folder path
         folder_path = "/opt/airflow/raw"
 
         # Generate a unique filename based on the current timestamp
@@ -85,4 +82,5 @@ with DAG(
         python_callable=lambda: print("Jobs completed successfully"),
     )
 
+    # pylint: disable=pointless-statement
     extract_task >> load_raw_task >> end_task

@@ -148,4 +148,5 @@ with DAG(
         python_callable=lambda: print("Jobs completed successfully"),
     )
 
+    # pylint: disable=pointless-statement
     extract_task >> load_raw_task >> end_task

@@ -2,11 +2,7 @@
 
 En esta práctica, se busca realizar un procesamiento batch de datos sobre la situación actual de la comunidad de Madrid. En concreto, se pretende extraer datos sobre la meteorología, la calidad del aire, la contaminación acústica y noticias recientes de periódicos locales. La infraestructura permitirá la extracción, procesamiento y almacenamiento de estos datos; con la finalidad de realizar una visualización de los mismos a través de un dashboard interactivo creado mediante Streamlit. Este dashboard, permitirá visualizar la situación en Madrid que hubo en un día concreto.
 
-Para ello, con una frecuencia diaria, se extraerán los datos mediante Apache Airflow (que será la herramienta que orquestará todo el flujo de datos desde la extracción hasta la propuesta de valor).
-
-Estos incrementales diarios se almacenarán en la carpeta `/raw`. Tras ello, se realizará un procesamiento paralelo de los datos en crudo con Apache Spark (PySpark) para, no solamente enriquecerlos; sino también, combinarlos con el histórico generado.
-
-Finalmente, se guardarán en una base de datos NoSQL de la cual beberá Streamlit. La elección de la base de datos NoSQL se realizará en la segunda parte de la práctica.
+Para ello, con una frecuencia diaria, se extraerán los datos mediante Apache Airflow (que será la herramienta que orquestará todo el flujo de datos desde la extracción hasta la propuesta de valor). Estos incrementales diarios se almacenarán en la carpeta `/raw`, cuya finalidad es que sea utilizada a modo de data lake (como AWS S3). Tras ello, se realizará semanalmente (todos los lunes) un procesamiento paralelo de los datos en crudo con Apache Spark (PySpark) para, no solamente enriquecerlos; sino también, combinarlos con el histórico generado guardando los datos estructurados en una base de datos relacional (PostgreSQL) y los no estructurados, en una base de datos no relacional (MongoDB). De estas dos soluciones de almacenamiento, beberá Streamlit para la visualización interactiva de los datos (dashboard)
 
 <div align="center">
 <image src="images/Architecture_Overview.png" width="80%">

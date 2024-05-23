@@ -20,3 +20,6 @@ RUN pip install --upgrade pip && \
     apache-airflow-providers-mongo==4.1.0 \
     torch==2.3.0 \
     transformers==4.41.0
+
+# Download and cache the model
+RUN python -c "from transformers import pipeline; pipeline('sentiment-analysis', model='mrm8488/electricidad-small-finetuned-sst2-es')"

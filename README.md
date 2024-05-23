@@ -77,7 +77,6 @@ La infraestrctura utiliza una red de tipo *bridge* que permite la comunicación 
 
 El clúster de Spark está compuesto por tres servicios:
 - **`spark-master`**: Este servicio actúa como el nodo maestro en un clúster de Spark. Es responsable de administrar y distribuir las tareas entre los nodos trabajadores (workers).
-
 - **`spark-worker-1`**, **`spark-worker-2`**, **`spark-worker-3`** y **`spark-worker-4`**: Estos cuatro servicios actúan como nodos trabajadores en el clúster de Spark. Se conectan al nodo maestro y son los encargados de ejecutar las tareas asignadas. Cada trabajador está configurado con 2 núcleos y 1GB de memoria RAM.
 
 > [!NOTE]
@@ -92,6 +91,8 @@ El clúster de Spark está compuesto por tres servicios:
 El entorno de Airflow está compuesto por dos servicios:
 - **`webserver`**: Este servicio corre el servidor web de Airflow, que proporciona la interfaz de usuario para administrar y visualizar flujos de trabajo (DAGs). Está configurado para ejecutarse en el puerto 8080, haciendo la interfaz accesible a través de `http://localhost:8080`.
 - **`scheduler`**: Este servicio corre el programador (scheduler) de Airflow, que es responsable de programar las tareas definidas en los DAGs y ejecutarlas según sus dependencias y programación. Antes de iniciar el scheduler, realiza migraciones de base de datos y crea un usuario admin para acceder a la interfaz de Airflow.
+- **`postgres`**: Este servicio funciona como la base de datos para Airflow. Guarda la información sobre el estado de las tareas, los DAGs y otros metadatos necesarios para que Airflow funcione correctamente. La base de datos está configurada con las credenciales `airflow` tanto para el usuario como para la contraseña.
+
 
 > [!NOTE]
 > **Apache Airflow** es una plataforma open-source diseñada para programar y orquestar flujos de trabajo complejos mediante programación en Python. Algunas de las razones por las cuales hemos utilizado Apache Airflow son las siguientes:
@@ -105,11 +106,12 @@ El entorno de Airflow está compuesto por dos servicios:
 > - **Escalabilidad y Integración**: Airflow se integra fácilmente con otras herramientas y plataformas, como Apache Spark para el procesamiento de datos y sistemas de bases de datos para el almacenamiento de datos. Esto permite escalar las operaciones de procesamiento conforme al volumen de datos crece, y facilita la implementación de mejoras sin grandes sobrecostos de adaptación.
 
 ### PostgreSQL
-- **`postgres`**: Este servicio funciona como la base de datos para Airflow. Guarda la información sobre el estado de las tareas, los DAGs y otros metadatos necesarios para que Airflow funcione correctamente. La base de datos está configurada con las credenciales `airflow` tanto para el usuario como para la contraseña.
+
 
 - **`pgAdmin4`**: Este servicio proporciona una interfaz web para administrar y visualizar la base de datos PostgreSQL. Se puede acceder a la interfaz en http://localhost:16543. Las credenciales de acceso son:
     - Correo electrónico: `teste@teste.com`
     - Contraseña: `teste`
+- **`postgres-datawarehouse`**: Este servicio es la base de datos relacional para nuestro datawarehouse (OLAP). En él, se guardará todos los datos estructurados en un modelo dimensional de Kimball para optimizar la lectura de los mismos (visualización desde Streamlit). 
       
 Al ingresar a la interfaz, se solicitará una contraseña para acceder al servidor de la base de datos, la cual es `password`.
 

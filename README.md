@@ -124,6 +124,30 @@ Al ingresar a la interfaz, se solicitará una contraseña para acceder al servid
 > - **Escalabilidad:** esta base de datos ofrece una escalabilidad horizontal, con soporte para sharding y réplicas. Esto permite manejar eficientemente grandes volúmenes de datos y un alto nivel de tráfico de lectura y escritura, características esenciales para sistemas de big data.
 > - **Rendimiento:** la capacidad de MongoDB para indexar cualquier campo en un documento y sus capacidades de consulta ricas lo hacen extremadamente rápido para operaciones de lectura y escritura, lo que mejora significativamente el rendimiento de las aplicaciones que dependen de un acceso rápido a grandes volúmenes de datos.
 
+
+### Streamlit
+
+- **`streamlit`**: Este servicio ejecuta el servidor de Streamlit, que proporciona una interfaz web para visualizar los datos almacenados en las bases de datos de PostgreSQL y MongoDB. Se puede acceder a la interfaz en http://localhost:8090.
+
+Esta interfaz tiene dos secciones principales:
+- **Visualización de Datos de Meteorología**: Muestra gráficos interactivos de las medidas meteorológicas de los distintos distritos de Madrid.
+
+<div align="center">
+<image src="images/map.png" width="80%">
+</div>
+
+Si se selecciona un distrito en el mapa, se mostrará un gráfico del histórico de la medida seleccionada en ese distrito.
+
+<div align="center">
+<image src="images/historical_data.png" width="80%">
+</div>
+
+- **Visualización de Datos de Noticias**: Muestra un gráfico de barras con el sentimiento de las noticias recopiladas de los periódicos *El País* y *ABC*. El sentimiento se calcula utilizando un modelo preentrenado de análisis de sentimientos.
+
+<div align="center">
+<image src="images/news.png" width="80%">
+</div>
+
 ### Volúmenes
 Se configuran varios volúmenes para mantener la persistencia de los datos y el código entre reinicios de los contenedores. En concreto, varios volúmenes se mapean a las carpetas locales para que Spark y Airflow puedan acceder a scripts, DAGs, registros de ejecución, datos crudos y enriquecidos (`./jobs`, `./dags`, `./logs`, `./raw`, `./rich`). A continuación se detallan los volúmenes configurados:
 
@@ -135,6 +159,9 @@ Se configuran varios volúmenes para mantener la persistencia de los datos y el 
   - `./jobs:/opt/airflow/jobs` y `./jobs:/opt/bitnami/spark/jobs`: Comparten scripts y tareas entre Airflow y Spark.
   - `./raw:/opt/airflow/raw` y `./raw:/opt/bitnami/spark/raw`: Utilizados para almacenar y acceder a datos en bruto.
   - `./rich:/opt/airflow/rich` y `./rich:/opt/bitnami/spark/rich`: Utilizados para almacenar resultados procesados listos para ser consumidos por otras aplicaciones o almacenados en la base de datos.
+
+- **Volumentes para Streamlit**:
+  - `./web_app:/app`: Comparte el código de la aplicación de Streamlit para visualizar los datos almacenados en las bases de datos de PostgreSQL y MongoDB.
 
 ## DAGs de Extracción de Apache Airflow :arrows_counterclockwise:
 

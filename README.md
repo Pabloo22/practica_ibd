@@ -71,7 +71,7 @@ Docker Compose permite definir en un solo archivo `docker-compose.yml` todas las
 Esta infraestructura está compuesta por los siguientes componentes:
 
 ### Red
-La infraestrctura utiliza una red de tipo *bridge* que permite la comunicación entre los distintos contenedores. 
+La infraestructura utiliza una red de tipo *bridge* que permite la comunicación entre los distintos contenedores. 
 
 ### Apache Spark
 

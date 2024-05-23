@@ -11,7 +11,7 @@ from transformers import pipeline  # type: ignore[import-untyped]
 from enrich_spark import last_seven_days
 
 
-RAW_DIR = "/opt/airflow/raw"
+RAW_DIR = "/opt/***/raw"
 RICH_DIR = "/opt/airflow/rich"
 OUTPUT_PATH = f"{RICH_DIR}/noticias_with_sentiment.json"
 
@@ -63,23 +63,25 @@ def main():
         f"{RAW_DIR}/noticias_{date}.json" for date in last_week_dates
     ]
 
-    # Check which files exist
-    existing_files = [file for file in file_paths if os.path.exists(file)]
-    if not existing_files:
-        print("No files found for the last seven days.")
-        print(f"files: {file_paths}")
-        spark.stop()
-        return
-
     # Process each file individually to add the date column
     dfs = []
-    for file_path in existing_files:
+    for file_path in file_paths:
         date_str = os.path.basename(file_path)[
             -(DATE_LEN + EXTENSION_LEN) : -EXTENSION_LEN
         ]
-        df = spark.read.option("multiline", "true").json(file_path)
+        try:
+            df = spark.read.option("multiline", "true").json(file_path)
+        except Exception as error:
+            print(f"Error reading file: {file_path}")
+            print(error)
+            continue
         df = df.withColumn("date", lit(date_str))
         dfs.append(df)
+
+    if not dfs:
+        raise ValueError(
+            f"No files found for the last seven days. files: {file_paths}"
+        )
 
     # Combine all DataFrames
     combined_df = dfs[0]

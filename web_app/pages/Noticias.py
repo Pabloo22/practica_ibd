@@ -1,6 +1,7 @@
 import streamlit as st
 import pymongo
 import pandas as pd
+from utils.constants import DATE_SIDEBAR
 
 st.set_page_config(
     page_title="Noticias",
@@ -55,7 +56,7 @@ def sentiment_bar(sentiment):
     return bar_html
 
 
-fecha = st.sidebar.date_input("Fecha", pd.to_datetime("2024-05-01"))
+fecha = st.sidebar.date_input("Fecha", DATE_SIDEBAR)
 
 fecha_str = fecha.strftime("%Y_%m_%d")
 

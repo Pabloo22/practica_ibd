@@ -279,7 +279,7 @@ Si se selecciona un distrito en el mapa, se mostrará un gráfico del histórico
 <image src="images/historical_data.png" width="80%">
 </div>
 
-- **Visualización de Datos de Noticias**: Muestra un gráfico de barras con el sentimiento de las noticias recopiladas de los periódicos *El País* y *ABC*. El sentimiento se calcula utilizando un modelo preentrenado de análisis de sentimientos.
+- **Visualización de Datos de Noticias**: Muestra un gradiente con el sentimiento del título de las noticias recopiladas de los periódicos *El País* y *ABC*. 
 
 <div align="center">
 <image src="images/news.png" width="80%">

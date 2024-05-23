@@ -107,7 +107,6 @@ El entorno de Airflow está compuesto por dos servicios:
 
 ### PostgreSQL
 
-
 - **`pgAdmin4`**: Este servicio proporciona una interfaz web para administrar y visualizar la base de datos PostgreSQL. Se puede acceder a la interfaz en http://localhost:16543. Las credenciales de acceso son:
     - Correo electrónico: `teste@teste.com`
     - Contraseña: `teste`
@@ -115,8 +114,27 @@ El entorno de Airflow está compuesto por dos servicios:
       
 Al ingresar a la interfaz, se solicitará una contraseña para acceder al servidor de la base de datos, la cual es `password`.
 
+### MongoDB
+
+- **`mongodb`**: En nuestra infraestructura, MongoDB se encarga del almacenamiento de noticias procesadas para análisis de sentimientos y visualizaciones rápidas y eficientes. Este servicio en Docker Compose se configura con la imagen oficial de MongoDB. Se expone el puerto estándar de MongoDB (27017) para permitir conexiones desde aplicaciones internas y externas al contenedor. Las configuraciones de volúmenes aseguran la persistencia de datos, lo que permite que los datos sobrevivan reinicios del contenedor.
+
+> [!NOTE]
+>  MongoDB es una base de datos NoSQL que proporciona alta flexibilidad y es adecuada para el almacenamiento y manipulación de datos en formatos no estructurados. Algunas de las razones por las cuales hemos utilizado MongoDB son las siguientes:
+> - **Flexibilidad de Esquema:** MongoDB permite almacenar documentos JSON sin un esquema predefinido. Por ejemplo, si en un futuro decidimos añadir el campo "autor" a los documentos de noticias, no necesitamos modificar el esquema de la base de datos.
+> - **Escalabilidad:** esta base de datos ofrece una escalabilidad horizontal, con soporte para sharding y réplicas. Esto permite manejar eficientemente grandes volúmenes de datos y un alto nivel de tráfico de lectura y escritura, características esenciales para sistemas de big data.
+> - **Rendimiento:** la capacidad de MongoDB para indexar cualquier campo en un documento y sus capacidades de consulta ricas lo hacen extremadamente rápido para operaciones de lectura y escritura, lo que mejora significativamente el rendimiento de las aplicaciones que dependen de un acceso rápido a grandes volúmenes de datos.
+
 ### Volúmenes
-Se configuran varios volúmenes para mantener la persistencia de los datos y el código entre reinicios de los contenedores. En concreto, varios volúmenes se mapean a las carpetas locales para que Spark y Airflow puedan acceder a scripts, DAGs, registros de ejecución, datos crudos y enriquecidos (`./jobs`, `./dags`, `./logs`, `./raw`, `./rich`).
+Se configuran varios volúmenes para mantener la persistencia de los datos y el código entre reinicios de los contenedores. En concreto, varios volúmenes se mapean a las carpetas locales para que Spark y Airflow puedan acceder a scripts, DAGs, registros de ejecución, datos crudos y enriquecidos (`./jobs`, `./dags`, `./logs`, `./raw`, `./rich`). A continuación se detallan los volúmenes configurados:
+
+- **`postgres-db-volume`**: Asociado con PostgreSQL, este volumen almacena la base de datos y asegura que los datos no se pierdan cuando el contenedor es reiniciado o eliminado. Está montado en `/var/lib/postgresql/data` dentro del contenedor.
+
+- **`mongodb-data`**: Utilizado por MongoDB para almacenar la base de datos, asegurando la persistencia de los datos almacenados en MongoDB. El directorio de montaje estándar es `/data/db` dentro del contenedor.
+
+- **Volúmenes para Spark y Airflow**:
+  - `./jobs:/opt/airflow/jobs` y `./jobs:/opt/bitnami/spark/jobs`: Comparten scripts y tareas entre Airflow y Spark.
+  - `./raw:/opt/airflow/raw` y `./raw:/opt/bitnami/spark/raw`: Utilizados para almacenar y acceder a datos en bruto.
+  - `./rich:/opt/airflow/rich` y `./rich:/opt/bitnami/spark/rich`: Utilizados para almacenar resultados procesados listos para ser consumidos por otras aplicaciones o almacenados en la base de datos.
 
 ## DAGs de Extracción de Apache Airflow :arrows_counterclockwise:
 
@@ -213,9 +231,9 @@ A continuación se detalla la lista de DAGs:
    Para más información sobre la fuente de datos, visita [open-meteo.com](https://open-meteo.com).
 
 ## Explicación de Flujo Completo de ETL
-Tras realizar esta extracción incremental diaria (volcando los correspondientes datos en la carpeta /raw), se ejecuta un DAG de Airflow con PySpark semanalmente para cargar los nuevos incrementales en el datawarehouse. Este datawarehouse se ha desplegado en PostgreSQL puesto que no solamente soporta funcionalidades de OLTP; sino también de OLAP (nuestro caso de uso).
+Tras realizar esta extracción incremental diaria (volcando los correspondientes datos en la carpeta `/raw`), se ejecuta un DAG de Airflow con PySpark semanalmente para cargar los nuevos incrementales en el datawarehouse. Este datawarehouse se ha desplegado en PostgreSQL puesto que no solamente soporta funcionalidades de OLTP; sino también de OLAP (nuestro caso de uso).
 
-En el datawarehouse, se ha optado por implementar un modelo Kimball. Todos los detalles de este modelo (las tablas a implementar, los mappeos correspondientes de antiguos IDs con los nuevos, la normalización de algunas estaciones repetidas, etc) se pueden encontrar en el Excel “Final_Kimball_Model”. A modo general, el modelo posee las siguientes tablas:
+En el datawarehouse, se ha optado por implementar un modelo Kimball. Todos los detalles de este modelo (las tablas a implementar, los mapeos correspondientes de antiguos IDs con los nuevos, la normalización de algunas estaciones repetidas, etc) se pueden encontrar en el Excel [Final_Kimball_Model_Def.xlsx](Final_Kimball_Model_Def.xlsx). A modo general, el modelo posee las siguientes tablas:
 
 <div align="center">
 <image src="images/Kimbal_Model.svg" width="80%">
@@ -226,11 +244,22 @@ En el datawarehouse, se ha optado por implementar un modelo Kimball. Todos los d
 - **Metrics (Dimensional Table)**: se ingesta una única vez al desplegar la infraestructura de datos en el script de inicialización de PostgreSQL. Posee los siguientes campos: “metric_id”, clave primaria; y “metric_name”, nombre de la métrica.
 
 
-Respecto al procesamiento semanal, todos los lunes por la mañana (a las 9:00 en UTC) se ejecuta el DAG **“weekly_spark_incremental”**. Este DAG se compone principalmente de dos tasks:
-- **“transform_task”**: se ejecuta un job de PySpark donde se realiza el respectivo procesamiento para  transformar los datos en /raw de la semana pasada al formato correspondiente a la FACT table de Measures. Este job de PySpark con 4 worker nodes se realiza en el script “enrich_spark.py”. En él, se realizan las transformaciones necesarias para todas las tablas (mappeos de station_id y metric_id, cálculo agregado de la medida “measure” realizando la media aritmética, concatenación de strings, procesamiento de fechas, filtros específicos, etc). Finalmente, todos los datos enriquecidos con el nuevo formato se guardan en el volumen /rich. Como se puede apreciar, los volúmenes /raw y /rich están funcionando como data lakes (AWS S3, ADLS, etc) en nuestra arquitectura delta.
-- **“load_rich_task”**: tras transformar los nuevos incrementales al formato de la FACT table en la task de PySpark, se deben insertar en la base de datos de PostgreSQL con la sentencia de COPY leyendo los datos enriquecidos del volumen /rich.
+Respecto al procesamiento semanal, todos los lunes por la mañana (a las 9:00 en UTC) se ejecuta el DAG **`weekly_spark_incremental`**. Este DAG se compone principalmente de dos tasks:
 
+- **`transform_task`**: se ejecuta un job de PySpark donde se realiza el respectivo procesamiento para  transformar los datos en /raw de la semana pasada al formato correspondiente a la FACT table de Measures. Este job de PySpark con 4 worker nodes se realiza en el script `enrich_spark.py`. En él, se realizan las transformaciones necesarias para todas las tablas (mappeos de station_id y metric_id, cálculo agregado de la medida “measure” realizando la media aritmética, concatenación de strings, procesamiento de fechas, filtros específicos, etc). Finalmente, todos los datos enriquecidos con el nuevo formato se guardan en el volumen `/rich`. Como se puede apreciar, los volúmenes `/raw` y `/rich` están funcionando como data lakes (AWS S3, ADLS, etc) en nuestra arquitectura delta.
+- **`load_rich_task`**: tras transformar los nuevos incrementales al formato de la FACT table en la task de PySpark, se deben insertar en la base de datos de PostgreSQL con la sentencia de `COPY` leyendo los datos enriquecidos del volumen `/rich`.
 
+Con esta misma frecuencia, los lunes a las 9:00 UTC, se ejecuta el DAG **`load_noticias_to_mongo_db_dag.py`**. Este flujo se encarga de analizar el sentimiento de las noticias y luego de cargar estos datos enriquecidos en una base de datos MongoDB. Sus tareas principales son:
+
+- **`sentiment_analysis_task`**: Se ejecuta un job de PySpark utilizando un script llamado `jobs/sentiment_analysis.py`, que realiza análisis de sentimiento en las noticias recopiladas durante la semana anterior. Este script procesa los archivos JSON almacenados en el volumen `/raw`, añadiendo un nuevo campo de `sentiment` a cada registro, calculado a través de un modelo preentrenado de análisis de sentimientos. El modelo utilizado es `"mrm8488/electricidad-small-finetuned-sst2-es"`, disponible en [Hugging Face](https://huggingface.co/mrm8488/electricidad-small-finetuned-sst2-es). Este modelo proporciona una probabilidad de que el texto de la noticia tenga una connotación positiva o negativa, y este cálculo se transforma en un rango de $[-1, 1]$ para ser directamente aplicable en análisis posteriores. La transformación a este rango se realiza restando la probabilidad de que el sentimiento sea negativo a la de que este sea positivo. Tras la evaluación de sentimiento, el job de PySpark escribe los resultados en formato JSON en el directorio `/opt/airflow/rich`. En concreto, los resultados se almacenan en una carpeta llamada `sentiment_analysis_{fecha_del_último_domingo}`.
+
+- **`load_to_mongodb`**: Una vez obtenidos los datos enriquecidos con información de sentimiento, esta tarea utiliza una función de Python para cargar estos datos en MongoDB. Esta función lee los archivos JSON del directorio especificado y, para cada registro, verifica si ya existe en la base de datos bajo el mismo título de noticia. Si la noticia ya existe, se actualiza con los nuevos datos; si no, se inserta como un nuevo documento. Esta comprobación no es estrictamente necesaria pero, de esta forma, se evitan tener documentos duplicados en la base de datos si se ejecuta manualmente el DAG y no se resta funcionalidad.
+
+### Resumen de Funcionalidad
+
+Este proceso no solo permite mantener actualizada la base de datos con las últimas noticias y sus análisis correspondientes, sino que también facilita la recuperación y visualización de estos datos para análisis y reportes en tiempo real.
+
+La combinación de PySpark para el procesamiento y análisis de los datos, junto con el almacenamiento eficiente y flexible que proporciona MongoDB, crea una potente infraestructura de backend que soporta tanto la agregación de datos y análisis en el datawarehouse como la visualización y el acceso rápido a datos en el sistema de MongoDB.
 
 ## Las 5 V's del Big Data :bar_chart:
 El proyecto aborda las 5 Vs del Big Data de la siguiente manera:

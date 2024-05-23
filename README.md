@@ -141,7 +141,7 @@ Se configuran varios volúmenes para mantener la persistencia de los datos y el 
   - `./raw:/opt/airflow/raw` y `./raw:/opt/bitnami/spark/raw`: Utilizados para almacenar y acceder a datos en bruto.
   - `./rich:/opt/airflow/rich` y `./rich:/opt/bitnami/spark/rich`: Utilizados para almacenar resultados procesados listos para ser consumidos por otras aplicaciones o almacenados en la base de datos.
 
-- **Volumentes para Streamlit**:
+- **Volumen para Streamlit**:
   - `./web_app:/app`: Comparte el código de la aplicación de Streamlit para visualizar los datos almacenados en las bases de datos de PostgreSQL y MongoDB.
 
 ## DAGs de Extracción de Apache Airflow :arrows_counterclockwise:

@@ -114,7 +114,7 @@ El entorno de Airflow está compuesto por dos servicios:
 Al ingresar a la interfaz, se solicitará una contraseña para acceder al servidor de la base de datos, la cual es `password`.
 
 ### Volúmenes
-Se configuran varios volúmenes para mantener la persistencia de los datos y el código entre reinicios de los contenedores. En concreto, varios volúmenes se mapean a las carpetas locales para que Spark y Airflow puedan acceder a scripts, DAGs, registros de ejecución y datos crudos (`./jobs`, `./dags`, `./logs`, `./raw`).
+Se configuran varios volúmenes para mantener la persistencia de los datos y el código entre reinicios de los contenedores. En concreto, varios volúmenes se mapean a las carpetas locales para que Spark y Airflow puedan acceder a scripts, DAGs, registros de ejecución, datos crudos y enriquecidos (`./jobs`, `./dags`, `./logs`, `./raw`, `./rich`).
 
 ## DAGs de Extracción de Apache Airflow :arrows_counterclockwise:
 

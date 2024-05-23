@@ -282,12 +282,6 @@ Con esta misma frecuencia, los lunes a las 9:00 UTC, se ejecuta el DAG **`load_n
 
 - **`load_to_mongodb`**: Una vez obtenidos los datos enriquecidos con información de sentimiento, esta tarea utiliza una función de Python para cargar estos datos en MongoDB. Esta función lee los archivos JSON del directorio especificado y, para cada registro, verifica si ya existe en la base de datos bajo el mismo título de noticia. Si la noticia ya existe, se actualiza con los nuevos datos; si no, se inserta como un nuevo documento. Esta comprobación no es estrictamente necesaria pero, de esta forma, se evitan tener documentos duplicados en la base de datos si se ejecuta manualmente el DAG y no se resta funcionalidad.
 
-### Resumen de Funcionalidad
-
-Este proceso no solo permite mantener actualizada la base de datos con las últimas noticias y sus análisis correspondientes, sino que también facilita la recuperación y visualización de estos datos para análisis y reportes en tiempo real.
-
-La combinación de PySpark para el procesamiento y análisis de los datos, junto con el almacenamiento eficiente y flexible que proporciona MongoDB, crea una potente infraestructura de backend que soporta tanto la agregación de datos y análisis en el datawarehouse como la visualización y el acceso rápido a datos en el sistema de MongoDB.
-
 ## Las 5 V's del Big Data :bar_chart:
 El proyecto aborda las 5 Vs del Big Data de la siguiente manera:
 

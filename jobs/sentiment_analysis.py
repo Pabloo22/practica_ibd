@@ -1,24 +1,24 @@
 import os
-import json
 from functools import partial
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf, lit
 from pyspark.sql.types import FloatType
-from transformers import pipeline
+from pyspark.errors.exceptions.base import AnalysisException
+from transformers import pipeline  # type: ignore[import-untyped]
 
 
-from enrich_spark import last_seven_days
+from enrich_spark import last_seven_days, last_Sunday
 
 
-RAW_DIR = "/opt/airflow/raw"
+RAW_DIR = "/opt/***/raw"
 RICH_DIR = "/opt/airflow/rich"
-OUTPUT_PATH = f"{RICH_DIR}/noticias_with_sentiment.json"
+OUTPUT_DIR = f"{RICH_DIR}/noticias_with_sentiment_{last_Sunday()}"
 
 # Local dirs
-RAW_DIR = "raw"
-RICH_DIR = "rich"
-OUTPUT_PATH = f"{RICH_DIR}/noticias_with_sentiment.json"
+# RAW_DIR = "raw"
+# RICH_DIR = "rich"
+# OUTPUT_PATH = f"{RICH_DIR}/noticias_with_sentiment.json"
 
 DATE_LEN = len("yyyy_mm_dd")
 EXTENSION_LEN = len(".json")
@@ -44,14 +44,15 @@ def predict(classifier, text):
 
 
 def main():
-    # Initialize SparkSession
+    """Creates a new (combined) JSON file with sentiment and date columns
+    added."""
     spark = (
         SparkSession.builder.master("local[*]")
         .appName("SentimentAnalysis")
         .getOrCreate()
     )
 
-    # Register UDF
+    # Register UDF (User Defined Function)
     classifier = get_classifier()
     calculate_sentiment = partial(predict, classifier)
     sentiment_udf = udf(calculate_sentiment, FloatType())
@@ -62,23 +63,26 @@ def main():
         f"{RAW_DIR}/noticias_{date}.json" for date in last_week_dates
     ]
 
-    # Check which files exist
-    existing_files = [file for file in file_paths if os.path.exists(file)]
-    if not existing_files:
-        print("No files found for the last seven days.")
-        print(f"files: {file_paths}")
-        spark.stop()
-        return
-
     # Process each file individually to add the date column
     dfs = []
-    for file_path in existing_files:
+    for file_path in file_paths:
         date_str = os.path.basename(file_path)[
             -(DATE_LEN + EXTENSION_LEN) : -EXTENSION_LEN
         ]
-        df = spark.read.option("multiline", "true").json(file_path)
+        try:
+            df = spark.read.option("multiline", "true").json(file_path)
+        except AnalysisException as error:
+            # We can't use `os` to check if the file exists.
+            print(f"File {file_path} does not exists")
+            print(error)
+            continue
         df = df.withColumn("date", lit(date_str))
         dfs.append(df)
+
+    if not dfs:
+        raise ValueError(
+            f"No files found for the last seven days. files: {file_paths}"
+        )
 
     # Combine all DataFrames
     combined_df = dfs[0]
@@ -89,25 +93,9 @@ def main():
     combined_df_with_sentiment = combined_df.withColumn(
         "sentiment", sentiment_udf(combined_df["title"])
     )
-    data = combined_df_with_sentiment.toJSON().collect()
-    json_data = [json.loads(row) for row in data]
 
-    # Load existing data if the file exists and combine
-    if os.path.exists(OUTPUT_PATH):
-        with open(OUTPUT_PATH, "r", encoding="utf-8") as f:
-            existing_data = json.load(f)
-
-        # Filter news with the same title
-        existing_titles = [news["title"] for news in existing_data]
-        filtered_data = [
-            news for news in json_data if news["title"] not in existing_titles
-        ]
-        # Combine the existing data with the new data
-        json_data = existing_data + filtered_data
-
-    # Save the final combined data to a single JSON file
-    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(json_data, f, ensure_ascii=False, indent=2)
+    # Save the final DataFrame to the output path
+    combined_df_with_sentiment.write.mode("overwrite").json(OUTPUT_DIR)
 
     spark.stop()
 

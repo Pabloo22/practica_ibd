@@ -1,5 +1,7 @@
-import pendulum
+import os
 
+import pendulum
+import pandas as pd
 from airflow import DAG
 from airflow.decorators import task
 from airflow.operators.python import PythonOperator
@@ -21,11 +23,6 @@ def extract_contaminacion_acustica(url):
         https://datos.madrid.es/egob/catalogo/211346-1-estaciones-acusticas.csv
 
     """
-
-    # https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html
-    # Best Practices - Section: Top level Python Code
-    import numpy as np
-    import pandas as pd
 
     df = pd.read_csv(url, sep=";", decimal=",", encoding="ISO-8859-1")
 
@@ -56,13 +53,6 @@ def load_contaminacion_acustica(df, folder_path):
     Carga el CSV incremental correspondiente en la carpeta de información cruda "/raw"
     """
 
-    # Best Practices - Section: Top level Python Code
-    import os
-    import pandas as pd
-
-    # For Debugging Purposes
-    print(os.getcwd())
-
     start_date = pd.to_datetime(
         str(default_args["start_date"])[:10], format="%Y-%m-%d"
     )
@@ -71,21 +61,20 @@ def load_contaminacion_acustica(df, folder_path):
     run_date = pd.to_datetime(
         os.environ.get("AIRFLOW_CTX_EXECUTION_DATE")[:10]
     )
-    # Get the csvs inside /opt/airflow/raw
+
     files = os.listdir(folder_path)
-    # Filter the csv that strats with 'contaminacion_acustica'
     files = [
         file for file in files if file.startswith("contaminacion_acustica")
     ]
-    # Get the dates from the csvs
+
     dates = [
         "".join(file.split("_")[2:]).split(".")[0].replace("_", "-")
         for file in files
     ]
-    # Convert to pandas datetime
+
     dates = pd.to_datetime(dates)
     print(f"Dates: {dates}")
-    # Get the last date
+
     last_date = dates.max()
     if last_date is pd.NaT:
         last_date = start_date
@@ -93,7 +82,6 @@ def load_contaminacion_acustica(df, folder_path):
     print(f"Last date: {last_date}")
     print(f"Run date: {run_date}")
 
-    # For loop from last_date to run_date
     for date in pd.date_range(start=last_date, end=run_date, freq="D"):
         print(f"Processing date: {date}")
         print(f"Year: {date.year}")
@@ -128,7 +116,6 @@ with DAG(
     tags=["Ayuntamiento_Madrid"],
     default_args=default_args,
 ) as dag:
-    import os
 
     @task(task_id="extract_from_url")
     def extract():

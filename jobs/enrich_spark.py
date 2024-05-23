@@ -1,3 +1,5 @@
+import os
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
     lit,
@@ -29,8 +31,15 @@ def merge_csv_files(csv_files):
     # Read each CSV file and add a new column for the date
     dfs = []
     for file in csv_files:
+        if not os.path.exists(file):
+            continue
         df = spark.read.option("header", "true").csv(file)
         dfs.append(df)
+
+    if not dfs:
+        raise ValueError(
+            f"No files found for the last seven days. files: {csv_files}"
+        )
 
     # Merge all DataFrames into a single DataFrame
     merged_df = dfs[0]

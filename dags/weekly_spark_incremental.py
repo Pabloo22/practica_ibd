@@ -60,14 +60,15 @@ with DAG(
 
     load_rich_task = PostgresOperator(
         task_id="load_data_to_postgres",
-        postgres_conn_id="postgres_default",  # Connection ID configured in Airflow for PostgreSQL
-        # sql="""INSERT INTO fact_measure (metric_id, station_id, measure, date)
-        #        VALUES (1, 1, 34, '2024-04-18')"""
-        sql=f"""COPY fact_measure (metric_id, station_id, measure, date) 
-            FROM '/rich/final_df_{last_Sunday_task}/{filename_task}' 
+        # Connection ID configured in Airflow for PostgreSQL
+        postgres_conn_id="postgres_default",
+        sql=f"""COPY fact_measure (metric_id, station_id, measure, date)
+            FROM '/rich/final_df_{last_Sunday_task}/{filename_task}'
             WITH (FORMAT CSV, HEADER TRUE)""",
-        # part-00000-9924a971-ecb6-4c73-a116-67da25120143-c000.csv
     )
+    # Note: we don't use parameters in the SQL query because there is no
+    # risk for SQL injection in this case. Since this is a prototype, we
+    # prefer to keep the code simple and readable.
 
     end_task = PythonOperator(
         task_id="end",

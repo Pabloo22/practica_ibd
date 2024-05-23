@@ -5,7 +5,7 @@ from functools import partial
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf, lit
 from pyspark.sql.types import FloatType
-from transformers import pipeline
+from transformers import pipeline  # type: ignore[import-untyped]
 
 
 from enrich_spark import last_seven_days
@@ -16,9 +16,9 @@ RICH_DIR = "/opt/airflow/rich"
 OUTPUT_PATH = f"{RICH_DIR}/noticias_with_sentiment.json"
 
 # Local dirs
-RAW_DIR = "raw"
-RICH_DIR = "rich"
-OUTPUT_PATH = f"{RICH_DIR}/noticias_with_sentiment.json"
+# RAW_DIR = "raw"
+# RICH_DIR = "rich"
+# OUTPUT_PATH = f"{RICH_DIR}/noticias_with_sentiment.json"
 
 DATE_LEN = len("yyyy_mm_dd")
 EXTENSION_LEN = len(".json")
@@ -44,14 +44,15 @@ def predict(classifier, text):
 
 
 def main():
-    # Initialize SparkSession
+    """Creates a new (combined) JSON file with sentiment and date columns
+    added."""
     spark = (
         SparkSession.builder.master("local[*]")
         .appName("SentimentAnalysis")
         .getOrCreate()
     )
 
-    # Register UDF
+    # Register UDF (User Defined Function)
     classifier = get_classifier()
     calculate_sentiment = partial(predict, classifier)
     sentiment_udf = udf(calculate_sentiment, FloatType())
@@ -102,10 +103,8 @@ def main():
         filtered_data = [
             news for news in json_data if news["title"] not in existing_titles
         ]
-        # Combine the existing data with the new data
         json_data = existing_data + filtered_data
 
-    # Save the final combined data to a single JSON file
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(json_data, f, ensure_ascii=False, indent=2)
 

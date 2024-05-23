@@ -1,19 +1,19 @@
 import os
-import json
 from functools import partial
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf, lit
 from pyspark.sql.types import FloatType
+from pyspark.errors.exceptions.base import AnalysisException
 from transformers import pipeline  # type: ignore[import-untyped]
 
 
-from enrich_spark import last_seven_days
+from enrich_spark import last_seven_days, last_Sunday
 
 
 RAW_DIR = "/opt/***/raw"
 RICH_DIR = "/opt/airflow/rich"
-OUTPUT_PATH = f"{RICH_DIR}/noticias_with_sentiment.json"
+OUTPUT_DIR = f"{RICH_DIR}/noticias_with_sentiment_{last_Sunday()}"
 
 # Local dirs
 # RAW_DIR = "raw"
@@ -71,8 +71,9 @@ def main():
         ]
         try:
             df = spark.read.option("multiline", "true").json(file_path)
-        except Exception as error:
-            print(f"Error reading file: {file_path}")
+        except AnalysisException as error:
+            # We can't use `os` to check if the file exists.
+            print(f"File {file_path} does not exists")
             print(error)
             continue
         df = df.withColumn("date", lit(date_str))
@@ -92,23 +93,9 @@ def main():
     combined_df_with_sentiment = combined_df.withColumn(
         "sentiment", sentiment_udf(combined_df["title"])
     )
-    data = combined_df_with_sentiment.toJSON().collect()
-    json_data = [json.loads(row) for row in data]
 
-    # Load existing data if the file exists and combine
-    if os.path.exists(OUTPUT_PATH):
-        with open(OUTPUT_PATH, "r", encoding="utf-8") as f:
-            existing_data = json.load(f)
-
-        # Filter news with the same title
-        existing_titles = [news["title"] for news in existing_data]
-        filtered_data = [
-            news for news in json_data if news["title"] not in existing_titles
-        ]
-        json_data = existing_data + filtered_data
-
-    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(json_data, f, ensure_ascii=False, indent=2)
+    # Save the final DataFrame to the output path
+    combined_df_with_sentiment.write.mode("overwrite").json(OUTPUT_DIR)
 
     spark.stop()
 

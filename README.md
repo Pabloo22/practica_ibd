@@ -116,7 +116,7 @@ Al ingresar a la interfaz, se solicitará una contraseña para acceder al servid
 
 ### MongoDB
 
-- **`mongodb`**: En nuestra infraestructura, MongoDB se encarga del almacenamiento de noticias procesadas para análisis de sentimientos y visualizaciones rápidas y eficientes. Este servicio en Docker Compose se configura con la imagen oficial de MongoDB. Se expone el puerto estándar de MongoDB (27017) para permitir conexiones desde aplicaciones internas y externas al contenedor. Las configuraciones de volúmenes aseguran la persistencia de datos, lo que permite que los datos sobrevivan reinicios del contenedor.
+- **`mongodb`**: se encarga del almacenamiento de noticias procesadas para análisis de sentimientos y visualizaciones rápidas y eficientes. Este servicio en Docker Compose se configura con la imagen oficial de MongoDB. Se expone el puerto estándar de MongoDB (27017) para permitir conexiones desde aplicaciones internas y externas al contenedor. Las configuraciones de volúmenes aseguran la persistencia de datos, lo que permite que los datos sobrevivan reinicios del contenedor.
 
 > [!NOTE]
 >  MongoDB es una base de datos NoSQL que proporciona alta flexibilidad y es adecuada para el almacenamiento y manipulación de datos en formatos no estructurados. Algunas de las razones por las cuales hemos utilizado MongoDB son las siguientes:

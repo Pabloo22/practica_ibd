@@ -8,6 +8,10 @@ Estos incrementales diarios se almacenarán en la carpeta `/raw`. Tras ello, se 
 
 Finalmente, se guardarán en una base de datos NoSQL de la cual beberá Streamlit. La elección de la base de datos NoSQL se realizará en la segunda parte de la práctica.
 
+<div align="center">
+<image src="images/Architecture_Overview.png" width="80%">
+</div>
+
 ## Despliegue :rocket:
 > [!WARNING]  
 > Es posible que sea necesario otorgar los permisos correspondientes a las carpetas `./logs` y `./raw` para que Apache Airflow pueda escribir en ellas desde el interior del contenedor. 
@@ -214,6 +218,10 @@ A continuación se detalla la lista de DAGs:
 Tras realizar esta extracción incremental diaria (volcando los correspondientes datos en la carpeta /raw), se ejecuta un DAG de Airflow con PySpark semanalmente para cargar los nuevos incrementales en el datawarehouse. Este datawarehouse se ha desplegado en PostgreSQL puesto que no solamente soporta funcionalidades de OLTP; sino también de OLAP (nuestro caso de uso).
 
 En el datawarehouse, se ha optado por implementar un modelo Kimball. Todos los detalles de este modelo (las tablas a implementar, los mappeos correspondientes de antiguos IDs con los nuevos, la normalización de algunas estaciones repetidas, etc) se pueden encontrar en el Excel “Final_Kimball_Model”. A modo general, el modelo posee las siguientes tablas:
+
+<div align="center">
+<image src="images/Kimbal_Model.svg" width="80%">
+</div>
 
 - **Measures (Fact Table)**: actualizada cada semana con los nuevos datos de los incrementales. Posee los siguientes campos: “measure_id”, una clave primaria autoincremental (que también actúa como clave surrogada); “metric_id”, una clave foránea que conecta con la tabla dimensional de Metrics; “station_id”, una clave foránea que conecta con la tabla dimensional de Stations; “measure”, valor cuantitativo de la medida; y “date”, fecha en la que se ha obtenido la medida (muy útil para los posteriores filtros en la parte de visualización)
 - **Stations (Dimensional Table)**: se ingesta una única vez al desplegar la infraestructura de datos en el script de inicialización de PostgreSQL. Posee los siguientes campos: “station_id”, clave primaria; “station_name”, nombre de la estación; “district_name”, nombre del distrito; “longitude”, longitud (coordenada); y “latitude”, latitud (coordenada)

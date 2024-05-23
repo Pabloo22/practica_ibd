@@ -106,7 +106,7 @@ services:
           - POSTGRES_USER=postgres
           - POSTGRES_PASSWORD=password
       volumes:
-          - postgres-db-volume:/var/lib/postgresql
+          - postgres-db-volume:/var/lib/postgresql/data
           - ./init.sql:/docker-entrypoint-initdb.d/init.sql
           - ./rich:/rich
       ports:
@@ -154,12 +154,6 @@ volumes:
             type: none
             o: bind
             device: ./data
-    pgadmin-data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: ./pgadmin4/data
     mongodb-data:
         driver: local
         driver_opts:

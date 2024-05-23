@@ -14,11 +14,13 @@ Para ello, con una frecuencia diaria, se extraerán los datos mediante Apache Ai
 > 
 > En Linux, se puede hacer mediante el comando `sudo chmod -R 777 ./logs ./dags` antes de realizar el despliegue. Este comando cambiará los permisos de los directorios logs y dags, así como de todos los archivos y subdirectorios contenidos dentro de ellos, otorgando permisos completos (lectura, escritura y ejecución) a todos los usuarios.
 
-Para desplegar el entorno, debemos ejecutar el siguiente comando:
+Para desplegar el entorno, debemos ejecutar el fichero [`run.sh`](run.sh), si se está utilizando Linus o MacOS; 
 
 ```bash
-docker compose up -d --build
+bash run.sh
 ```
+
+o el fichero [`run.bat`](run.bat), si se está utilizando Windows. Estos scripts se encargan de preparar el entorno y ejecutar el comando `docker-compose up --build` para desplegar los contenedores necesarios.
 
 Al desplegar el entorno por primera vez, **es posible que debamos inicializar manualmente el contenedor asociado al servidor web de Apache Airflow** (`webserver`). No obstante, tras la adición de "restart: on-failure" en la nueva versión, esto ya no es necesario.
 
@@ -128,25 +130,6 @@ Al ingresar a la interfaz, se solicitará una contraseña para acceder al servid
 ### Streamlit
 
 - **`streamlit`**: Este servicio ejecuta el servidor de Streamlit, que proporciona una interfaz web para visualizar los datos almacenados en las bases de datos de PostgreSQL y MongoDB. Se puede acceder a la interfaz en http://localhost:8090.
-
-Esta interfaz tiene dos secciones principales:
-- **Visualización de Datos de Meteorología**: Muestra gráficos interactivos de las medidas meteorológicas de los distintos distritos de Madrid.
-
-<div align="center">
-<image src="images/map.png" width="80%">
-</div>
-
-Si se selecciona un distrito en el mapa, se mostrará un gráfico del histórico de la medida seleccionada en ese distrito.
-
-<div align="center">
-<image src="images/historical_data.png" width="80%">
-</div>
-
-- **Visualización de Datos de Noticias**: Muestra un gráfico de barras con el sentimiento de las noticias recopiladas de los periódicos *El País* y *ABC*. El sentimiento se calcula utilizando un modelo preentrenado de análisis de sentimientos.
-
-<div align="center">
-<image src="images/news.png" width="80%">
-</div>
 
 ### Volúmenes
 Se configuran varios volúmenes para mantener la persistencia de los datos y el código entre reinicios de los contenedores. En concreto, varios volúmenes se mapean a las carpetas locales para que Spark y Airflow puedan acceder a scripts, DAGs, registros de ejecución, datos crudos y enriquecidos (`./jobs`, `./dags`, `./logs`, `./raw`, `./rich`). A continuación se detallan los volúmenes configurados:
@@ -281,6 +264,28 @@ Con esta misma frecuencia, los lunes a las 9:00 UTC, se ejecuta el DAG **`load_n
 - **`sentiment_analysis_task`**: Se ejecuta un job de PySpark utilizando un script llamado `jobs/sentiment_analysis.py`, que realiza análisis de sentimiento en las noticias recopiladas durante la semana anterior. Este script procesa los archivos JSON almacenados en el volumen `/raw`, añadiendo un nuevo campo de `sentiment` a cada registro, calculado a través de un modelo preentrenado de análisis de sentimientos. El modelo utilizado es `"mrm8488/electricidad-small-finetuned-sst2-es"`, disponible en [Hugging Face](https://huggingface.co/mrm8488/electricidad-small-finetuned-sst2-es). Este modelo proporciona una probabilidad de que el texto de la noticia tenga una connotación positiva o negativa, y este cálculo se transforma en un rango de $[-1, 1]$ para ser directamente aplicable en análisis posteriores. La transformación a este rango se realiza restando la probabilidad de que el sentimiento sea negativo a la de que este sea positivo. Tras la evaluación de sentimiento, el job de PySpark escribe los resultados en formato JSON en el directorio `/opt/airflow/rich`. En concreto, los resultados se almacenan en una carpeta llamada `sentiment_analysis_{fecha_del_último_domingo}`.
 
 - **`load_to_mongodb`**: Una vez obtenidos los datos enriquecidos con información de sentimiento, esta tarea utiliza una función de Python para cargar estos datos en MongoDB. Esta función lee los archivos JSON del directorio especificado y, para cada registro, verifica si ya existe en la base de datos bajo el mismo título de noticia. Si la noticia ya existe, se actualiza con los nuevos datos; si no, se inserta como un nuevo documento. Esta comprobación no es estrictamente necesaria pero, de esta forma, se evitan tener documentos duplicados en la base de datos si se ejecuta manualmente el DAG y no se resta funcionalidad.
+
+## Dashboard de Streamlit :chart_with_upwards_trend:
+Streamlit es un framework de código abierto diseñado para crear rápidamente aplicaciones web interactivas y visualizaciones de datos utilizando solo Python. Se puede acceder a la interfaz en http://localhost:8090.
+
+Esta interfaz tiene dos secciones principales:
+- **Visualización de Datos de Meteorología**: Muestra gráficos interactivos de las medidas meteorológicas de los distintos distritos de Madrid.
+
+<div align="center">
+<image src="images/map.png" width="80%">
+</div>
+
+Si se selecciona un distrito en el mapa, se mostrará un gráfico del histórico de la medida seleccionada en ese distrito.
+
+<div align="center">
+<image src="images/historical_data.png" width="80%">
+</div>
+
+- **Visualización de Datos de Noticias**: Muestra un gráfico de barras con el sentimiento de las noticias recopiladas de los periódicos *El País* y *ABC*. El sentimiento se calcula utilizando un modelo preentrenado de análisis de sentimientos.
+
+<div align="center">
+<image src="images/news.png" width="80%">
+</div>
 
 ## Las 5 V's del Big Data :bar_chart:
 El proyecto aborda las 5 Vs del Big Data de la siguiente manera:

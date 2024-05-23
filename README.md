@@ -78,7 +78,7 @@ La infraestrctura utiliza una red de tipo *bridge* que permite la comunicación 
 El clúster de Spark está compuesto por tres servicios:
 - **`spark-master`**: Este servicio actúa como el nodo maestro en un clúster de Spark. Es responsable de administrar y distribuir las tareas entre los nodos trabajadores (workers).
 
-- **`spark-worker-1`** y **`spark-worker-2`**: Estos dos servicios actúan como nodos trabajadores en el clúster de Spark. Se conectan al nodo maestro y son los encargados de ejecutar las tareas asignadas. Cada trabajador está configurado con 2 núcleos y 1GB de memoria RAM.
+- **`spark-worker-1`**, **`spark-worker-2`**, **`spark-worker-3`** y **`spark-worker-4`**: Estos cuatro servicios actúan como nodos trabajadores en el clúster de Spark. Se conectan al nodo maestro y son los encargados de ejecutar las tareas asignadas. Cada trabajador está configurado con 2 núcleos y 1GB de memoria RAM.
 
 > [!NOTE]
 > **Apache Spark** es un motor de procesamiento de datos que permite análisis complejos y computación distribuida. Se justifica su uso por las siguientes razones:

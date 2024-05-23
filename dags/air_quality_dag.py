@@ -69,10 +69,7 @@ with DAG(
 
     @task(task_id="load_df_to_raw")
     def load_raw(df):
-        # Retrieve the Pandas DataFrame
         print(df.head())
-
-        # Define the folder path
         folder_path = "/opt/airflow/raw"
 
         # Generate a unique filename based on the current timestamp
